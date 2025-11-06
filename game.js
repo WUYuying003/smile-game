@@ -4,6 +4,33 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const video = document.getElementById('video');
 
+// Disable image smoothing for pixel art
+ctx.imageSmoothingEnabled = false;
+ctx.mozImageSmoothingEnabled = false;
+ctx.webkitImageSmoothingEnabled = false;
+ctx.msImageSmoothingEnabled = false;
+
+// 16x16 Smiley face sprite (your exact image)
+const SMILEY_SPRITE = [
+    [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+    [0,0,0,1,1,2,2,2,2,2,2,1,1,0,0,0],
+    [0,0,1,1,2,2,2,2,2,2,2,2,1,1,0,0],
+    [0,1,1,2,2,2,2,2,2,2,2,2,2,1,1,0],
+    [1,1,2,2,1,1,2,2,2,2,1,1,2,2,1,1],
+    [1,2,2,2,1,1,2,2,2,2,1,1,2,2,2,1],
+    [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+    [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+    [1,2,2,1,1,2,2,2,2,2,2,1,1,2,2,1],
+    [1,2,2,1,1,2,2,2,2,2,2,1,1,2,2,1],
+    [1,2,2,2,1,1,1,1,1,1,1,1,2,2,2,1],
+    [1,1,2,2,2,2,2,2,2,2,2,2,2,2,1,1],
+    [0,1,1,2,2,2,2,2,2,2,2,2,2,1,1,0],
+    [0,0,1,1,2,2,2,2,2,2,2,2,1,1,0,0],
+    [0,0,0,1,1,2,2,2,2,2,2,1,1,0,0,0],
+    [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0]
+];
+// 0 = transparent, 1 = black, 2 = yellow
+
 // MediaPipe Hands
 let hands;
 let camera;
@@ -49,6 +76,52 @@ const COLORS = {
 // Track touch state
 let fingerTouchedLastFrame = false;
 
+// Draw pixelated smiley face
+function drawPixelSmiley(x, y, size) {
+    const pixelSize = size / 16; // 16x16 grid
+    
+    for (let row = 0; row < 16; row++) {
+        for (let col = 0; col < 16; col++) {
+            const pixel = SMILEY_SPRITE[row][col];
+            if (pixel === 0) continue; // transparent
+            
+            const px = x - size/2 + col * pixelSize;
+            const py = y - size/2 + row * pixelSize;
+            
+            if (pixel === 1) {
+                ctx.fillStyle = COLORS.black;
+            } else if (pixel === 2) {
+                ctx.fillStyle = COLORS.accent; // yellow
+            }
+            
+            ctx.fillRect(Math.floor(px), Math.floor(py), Math.ceil(pixelSize), Math.ceil(pixelSize));
+        }
+    }
+}
+
+// Draw pixelated number in a circle
+function drawPixelNumber(x, y, number, radius, color, filled = false) {
+    // Draw square background
+    const size = radius * 2;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 4;
+    
+    if (filled) {
+        ctx.fillStyle = color;
+        ctx.fillRect(x - radius, y - radius, size, size);
+        ctx.fillStyle = COLORS.black;
+    } else {
+        ctx.strokeRect(x - radius, y - radius, size, size);
+        ctx.fillStyle = color;
+    }
+    
+    // Draw number
+    ctx.font = `bold ${radius * 1.2}px "Press Start 2P", monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(number.toString(), x, y);
+}
+
 // Initialize MediaPipe Hands
 async function initializeHands() {
     hands = new Hands({
@@ -91,8 +164,8 @@ async function initializeCamera() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({
             video: {
-                width: 1280,
-                height: 720,
+                width: 1920,
+                height: 1080,
                 facingMode: 'user'
             }
         });
@@ -109,8 +182,8 @@ async function initializeCamera() {
             onFrame: async () => {
                 await hands.send({image: video});
             },
-            width: 1280,
-            height: 720
+            width: 1920,
+            height: 1080
         });
         
         await camera.start();
@@ -184,112 +257,112 @@ function generateTargets() {
     targetStartTime = Date.now();
 }
 
-// Draw finger tip indicator
+// Draw finger tip indicator (pixelated square)
 function drawFingerIndicator() {
     if (fingerTipPosition) {
         const {x, y} = fingerTipPosition;
+        const size = 16; // 16x16 pixel square
         
-        // Draw outer circle
+        // Draw outer square (white border)
         ctx.strokeStyle = COLORS.white;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(x, y, 20, 0, Math.PI * 2);
-        ctx.stroke();
+        ctx.lineWidth = 4;
+        ctx.strokeRect(x - size, y - size, size * 2, size * 2);
         
-        // Draw inner circle
+        // Draw inner square (yellow)
         ctx.fillStyle = COLORS.accent;
-        ctx.beginPath();
-        ctx.arc(x, y, 15, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillRect(x - size/2, y - size/2, size, size);
         
-        // Draw crosshair
-        ctx.strokeStyle = COLORS.white;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(x - 10, y);
-        ctx.lineTo(x + 10, y);
-        ctx.moveTo(x, y - 10);
-        ctx.lineTo(x, y + 10);
-        ctx.stroke();
+        // Draw crosshair (pixelated)
+        ctx.fillStyle = COLORS.white;
+        ctx.fillRect(x - 8, y - 2, 16, 4); // horizontal
+        ctx.fillRect(x - 2, y - 8, 4, 16); // vertical
     }
 }
 
-// Draw targets
+// Draw targets (pixelated squares)
 function drawTargets() {
     for (let target of targets) {
         const {x, y, number, completed, beingTouched, wrong} = target;
+        const squareSize = TARGET_RADIUS * 2;
         
-        // Draw countdown progress for current target
+        // Draw countdown progress for current target (pixelated border)
         if (number === currentTarget && !completed && target.startTime) {
             const elapsed = (Date.now() - target.startTime) / 1000;
             const remaining = Math.max(0, 1 - elapsed / 10.0);
             
             if (remaining > 0) {
-                const angle = remaining * Math.PI * 2;
-                ctx.strokeStyle = remaining > 0.5 ? COLORS.accent : COLORS.wrong;
-                ctx.lineWidth = 5;
-                ctx.beginPath();
-                ctx.arc(x, y, TARGET_RADIUS + 15, -Math.PI / 2, -Math.PI / 2 + angle);
-                ctx.stroke();
+                const progressColor = remaining > 0.5 ? COLORS.accent : COLORS.wrong;
+                const progressSize = squareSize + 30;
+                const borderWidth = 8;
+                
+                // Draw progress on all four sides
+                ctx.fillStyle = progressColor;
+                const progressAmount = remaining;
+                
+                // Top
+                if (progressAmount > 0) {
+                    const topWidth = Math.min(1, progressAmount * 4) * progressSize;
+                    ctx.fillRect(x - progressSize/2, y - progressSize/2 - borderWidth, topWidth, borderWidth);
+                }
+                // Right
+                if (progressAmount > 0.25) {
+                    const rightHeight = Math.min(1, (progressAmount - 0.25) * 4) * progressSize;
+                    ctx.fillRect(x + progressSize/2, y - progressSize/2, borderWidth, rightHeight);
+                }
+                // Bottom
+                if (progressAmount > 0.5) {
+                    const bottomWidth = Math.min(1, (progressAmount - 0.5) * 4) * progressSize;
+                    ctx.fillRect(x + progressSize/2 - bottomWidth, y + progressSize/2, bottomWidth, borderWidth);
+                }
+                // Left
+                if (progressAmount > 0.75) {
+                    const leftHeight = Math.min(1, (progressAmount - 0.75) * 4) * progressSize;
+                    ctx.fillRect(x - progressSize/2 - borderWidth, y + progressSize/2 - leftHeight, borderWidth, leftHeight);
+                }
             }
         }
         
-        // Choose color and draw
+        // Choose color and draw pixelated square
         let color;
         if (wrong) {
-            color = COLORS.wrong;
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.arc(x, y, TARGET_RADIUS, 0, Math.PI * 2);
-            ctx.fill();
+            // Wrong - red square with X
+            ctx.fillStyle = COLORS.wrong;
+            ctx.fillRect(x - squareSize/2, y - squareSize/2, squareSize, squareSize);
             
-            // Draw X
-            ctx.strokeStyle = COLORS.white;
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.moveTo(x - 20, y - 20);
-            ctx.lineTo(x + 20, y + 20);
-            ctx.moveTo(x - 20, y + 20);
-            ctx.lineTo(x + 20, y - 20);
-            ctx.stroke();
+            // Draw X (pixelated)
+            ctx.fillStyle = COLORS.white;
+            const xSize = 8;
+            for (let i = -20; i <= 20; i += 4) {
+                ctx.fillRect(x + i - xSize/2, y + i - xSize/2, xSize, xSize);
+                ctx.fillRect(x + i - xSize/2, y - i - xSize/2, xSize, xSize);
+            }
         } else if (completed) {
-            color = COLORS.primary;
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.arc(x, y, TARGET_RADIUS, 0, Math.PI * 2);
-            ctx.fill();
+            // Completed - purple square
+            ctx.fillStyle = COLORS.primary;
+            ctx.fillRect(x - squareSize/2, y - squareSize/2, squareSize, squareSize);
         } else if (number === currentTarget) {
+            // Current target - white or green border with number
             color = beingTouched ? COLORS.success : COLORS.white;
             ctx.strokeStyle = color;
-            ctx.lineWidth = 5;
-            ctx.beginPath();
-            ctx.arc(x, y, TARGET_RADIUS, 0, Math.PI * 2);
-            ctx.stroke();
+            ctx.lineWidth = 6;
+            ctx.strokeRect(x - squareSize/2, y - squareSize/2, squareSize, squareSize);
             
             // Draw number
-            ctx.fillStyle = color;
-            ctx.font = 'bold 48px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(number.toString(), x, y);
+            drawPixelNumber(x, y, number, TARGET_RADIUS * 0.6, color, false);
         } else {
+            // Future target - purple border with number
             color = COLORS.secondary;
             ctx.strokeStyle = color;
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.arc(x, y, TARGET_RADIUS, 0, Math.PI * 2);
-            ctx.stroke();
+            ctx.lineWidth = 4;
+            ctx.strokeRect(x - squareSize/2, y - squareSize/2, squareSize, squareSize);
             
-            ctx.fillStyle = color;
-            ctx.font = 'bold 36px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(number.toString(), x, y);
+            // Draw number
+            drawPixelNumber(x, y, number, TARGET_RADIUS * 0.5, color, false);
         }
     }
 }
 
-// Particle system
+// Particle system (pixelated smiley)
 class Particle {
     constructor(x, y, targetX, targetY) {
         this.x = x;
@@ -309,35 +382,10 @@ class Particle {
         const currentX = this.x + (this.targetX - this.x) * this.progress;
         const currentY = this.y + (this.targetY - this.y) * this.progress;
         const scale = 1.5 - this.progress * 0.5;
-        const size = 25 * scale;
+        const size = 48 * scale; // Larger for visibility (3x16 pixels)
         
-        // Draw smiley
-        ctx.fillStyle = COLORS.accent;
-        ctx.beginPath();
-        ctx.arc(currentX, currentY, size, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.strokeStyle = COLORS.white;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(currentX, currentY, size, 0, Math.PI * 2);
-        ctx.stroke();
-        
-        if (size > 10) {
-            // Eyes
-            ctx.fillStyle = COLORS.black;
-            ctx.beginPath();
-            ctx.arc(currentX - size * 0.3, currentY - size * 0.2, size * 0.15, 0, Math.PI * 2);
-            ctx.arc(currentX + size * 0.3, currentY - size * 0.2, size * 0.15, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Smile
-            ctx.strokeStyle = COLORS.black;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(currentX, currentY + size * 0.2, size * 0.4, 0, Math.PI, false);
-            ctx.stroke();
-        }
+        // Draw pixelated smiley
+        drawPixelSmiley(currentX, currentY, size);
     }
 }
 
@@ -451,24 +499,28 @@ function update() {
         }
     } else if (gameState === 'level_complete') {
         // Check for finger touch on next level button
-        if (fingerTipPosition && !fingerTouchedLastFrame) {
-            if (checkNextLevelTouch()) {
+        if (fingerTipPosition) {
+            checkNextLevelTouch(); // Update touch state for visual feedback
+            if (buttonTouchState.nextLevel && !fingerTouchedLastFrame) {
                 nextLevel();
                 fingerTouchedLastFrame = true;
             }
-        } else if (!fingerTipPosition) {
+        } else {
+            buttonTouchState.nextLevel = false;
             fingerTouchedLastFrame = false;
         }
     } else if (gameState === 'victory') {
         // Check for finger touch to reveal secret code
-        if (fingerTipPosition && !fingerTouchedLastFrame) {
-            if (checkSecretCodeTouch()) {
+        if (fingerTipPosition) {
+            checkSecretCodeTouch(); // Update touch state for visual feedback
+            if (buttonTouchState.secretCode && !fingerTouchedLastFrame && !secretCodeRevealed) {
                 secretCodeRevealed = true;
                 document.getElementById('secretCode').textContent = '0218';
                 document.getElementById('secretCode').classList.add('revealed');
                 fingerTouchedLastFrame = true;
             }
-        } else if (!fingerTipPosition) {
+        } else {
+            buttonTouchState.secretCode = false;
             fingerTouchedLastFrame = false;
         }
     } else if (gameState === 'wrong') {
@@ -483,6 +535,26 @@ function update() {
     document.getElementById('score').textContent = score;
     document.getElementById('level').textContent = level;
     document.getElementById('timer').textContent = Math.ceil(targetTimer);
+    
+    // Update button visual feedback
+    const nextButton = document.getElementById('nextButton');
+    const secretCodeArea = document.getElementById('secretCodeArea');
+    
+    if (nextButton) {
+        if (buttonTouchState.nextLevel) {
+            nextButton.classList.add('touched');
+        } else {
+            nextButton.classList.remove('touched');
+        }
+    }
+    
+    if (secretCodeArea) {
+        if (buttonTouchState.secretCode) {
+            secretCodeArea.classList.add('touched');
+        } else {
+            secretCodeArea.classList.remove('touched');
+        }
+    }
 }
 
 // Draw everything
@@ -532,6 +604,12 @@ function nextLevel() {
     document.getElementById('levelCompleteModal').style.display = 'none';
 }
 
+// Button touch state tracking
+let buttonTouchState = {
+    nextLevel: false,
+    secretCode: false
+};
+
 // Check if finger touches next level button area
 function checkNextLevelTouch() {
     if (!fingerTipPosition || gameState !== 'level_complete') return false;
@@ -543,10 +621,13 @@ function checkNextLevelTouch() {
         height: 60
     };
     
-    return fingerTipPosition.x > buttonArea.x - buttonArea.width / 2 &&
+    const isTouching = fingerTipPosition.x > buttonArea.x - buttonArea.width / 2 &&
            fingerTipPosition.x < buttonArea.x + buttonArea.width / 2 &&
            fingerTipPosition.y > buttonArea.y - buttonArea.height / 2 &&
            fingerTipPosition.y < buttonArea.y + buttonArea.height / 2;
+    
+    buttonTouchState.nextLevel = isTouching;
+    return isTouching;
 }
 
 // Check if finger touches secret code area
@@ -560,10 +641,13 @@ function checkSecretCodeTouch() {
         height: 80
     };
     
-    return fingerTipPosition.x > codeArea.x - codeArea.width / 2 &&
+    const isTouching = fingerTipPosition.x > codeArea.x - codeArea.width / 2 &&
            fingerTipPosition.x < codeArea.x + codeArea.width / 2 &&
            fingerTipPosition.y > codeArea.y - codeArea.height / 2 &&
            fingerTipPosition.y < codeArea.y + codeArea.height / 2;
+    
+    buttonTouchState.secretCode = isTouching;
+    return isTouching;
 }
 
 // Event listeners
