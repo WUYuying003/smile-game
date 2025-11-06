@@ -10,65 +10,71 @@ ctx.mozImageSmoothingEnabled = false;
 ctx.webkitImageSmoothingEnabled = false;
 ctx.msImageSmoothingEnabled = false;
 
-// Animated coin sprite frames (16x16 spinning coin animation)
+// Animated coin sprite frames - 6 frames from user's exact PNG (8x8 pixels each)
 const COIN_FRAMES = [
-    // Frame 1 - Full circle
-    [[0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-     [0,0,1,1,2,2,2,2,2,2,2,2,1,1,0,0],
-     [0,1,2,2,2,3,3,3,3,3,3,2,2,2,1,0],
-     [0,1,2,3,3,3,1,1,1,1,3,3,3,2,1,0],
-     [1,2,2,3,1,1,1,1,1,1,1,1,3,2,2,1],
-     [1,2,3,3,1,1,1,1,1,1,1,1,3,3,2,1],
-     [1,2,3,1,1,1,1,1,1,1,1,1,1,3,2,1],
-     [1,2,3,1,1,1,1,1,1,1,1,1,1,3,2,1],
-     [1,2,3,1,1,1,1,1,1,1,1,1,1,3,2,1],
-     [1,2,3,3,1,1,1,1,1,1,1,1,3,3,2,1],
-     [1,2,2,3,1,1,1,1,1,1,1,1,3,2,2,1],
-     [0,1,2,3,3,3,1,1,1,1,3,3,3,2,1,0],
-     [0,1,2,2,2,3,3,3,3,3,3,2,2,2,1,0],
-     [0,0,1,1,2,2,2,2,2,2,2,2,1,1,0,0],
-     [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],
+    // Frame 1 - Full round coin
+    [[0,0,1,1,1,1,0,0],
+     [0,1,2,2,2,2,1,0],
+     [1,2,3,3,3,3,2,1],
+     [1,2,3,3,3,3,2,1],
+     [1,2,3,3,3,3,2,1],
+     [1,2,3,3,3,3,2,1],
+     [0,1,2,2,2,2,1,0],
+     [0,0,1,1,1,1,0,0]],
     
-    // Frame 2 - Tilted
-    [[0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-     [0,0,1,1,2,2,2,2,2,2,2,2,1,1,0,0],
-     [0,1,2,2,2,3,3,3,3,3,3,2,2,2,1,0],
-     [0,1,2,3,3,1,1,1,1,1,1,3,3,2,1,0],
-     [1,2,2,3,1,1,1,1,1,1,1,1,3,2,2,1],
-     [1,2,3,1,1,1,1,1,1,1,1,1,1,3,2,1],
-     [1,2,3,1,1,1,1,1,1,1,1,1,1,3,2,1],
-     [1,2,3,1,1,1,1,1,1,1,1,1,1,3,2,1],
-     [1,2,3,1,1,1,1,1,1,1,1,1,1,3,2,1],
-     [1,2,3,1,1,1,1,1,1,1,1,1,1,3,2,1],
-     [1,2,2,3,1,1,1,1,1,1,1,1,3,2,2,1],
-     [0,1,2,3,3,1,1,1,1,1,1,3,3,2,1,0],
-     [0,1,2,2,2,3,3,3,3,3,3,2,2,2,1,0],
-     [0,0,1,1,2,2,2,2,2,2,2,2,1,1,0,0],
-     [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],
+    // Frame 2 - Slightly tilted
+    [[0,0,1,1,1,1,0,0],
+     [0,1,2,2,2,2,1,0],
+     [1,2,3,3,3,2,1,0],
+     [1,2,3,3,3,2,1,0],
+     [1,2,3,3,3,2,1,0],
+     [1,2,3,3,3,2,1,0],
+     [0,1,2,2,2,2,1,0],
+     [0,0,1,1,1,1,0,0]],
     
-    // Frame 3 - Thin vertical
-    [[0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
-     [0,0,0,0,0,1,2,2,2,2,1,0,0,0,0,0],
-     [0,0,0,0,1,2,2,3,3,2,2,1,0,0,0,0],
-     [0,0,0,0,1,2,3,1,1,3,2,1,0,0,0,0],
-     [0,0,0,0,1,2,3,1,1,3,2,1,0,0,0,0],
-     [0,0,0,0,1,2,3,1,1,3,2,1,0,0,0,0],
-     [0,0,0,0,1,2,3,1,1,3,2,1,0,0,0,0],
-     [0,0,0,0,1,2,3,1,1,3,2,1,0,0,0,0],
-     [0,0,0,0,1,2,3,1,1,3,2,1,0,0,0,0],
-     [0,0,0,0,1,2,3,1,1,3,2,1,0,0,0,0],
-     [0,0,0,0,1,2,3,1,1,3,2,1,0,0,0,0],
-     [0,0,0,0,1,2,3,1,1,3,2,1,0,0,0,0],
-     [0,0,0,0,1,2,2,3,3,2,2,1,0,0,0,0],
-     [0,0,0,0,0,1,2,2,2,2,1,0,0,0,0,0],
-     [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
-     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
+    // Frame 3 - More tilted
+    [[0,0,1,1,1,0,0,0],
+     [0,1,2,2,2,1,0,0],
+     [0,1,2,3,3,2,1,0],
+     [0,1,2,3,3,2,1,0],
+     [0,1,2,3,3,2,1,0],
+     [0,1,2,3,3,2,1,0],
+     [0,1,2,2,2,1,0,0],
+     [0,0,1,1,1,0,0,0]],
+    
+    // Frame 4 - Thin vertical
+    [[0,0,0,1,1,0,0,0],
+     [0,0,1,2,2,1,0,0],
+     [0,0,1,2,2,1,0,0],
+     [0,0,1,3,3,1,0,0],
+     [0,0,1,3,3,1,0,0],
+     [0,0,1,2,2,1,0,0],
+     [0,0,1,2,2,1,0,0],
+     [0,0,0,1,1,0,0,0]],
+    
+    // Frame 5 - Tilted other way
+    [[0,0,0,1,1,1,0,0],
+     [0,0,1,2,2,2,1,0],
+     [0,1,2,3,3,2,1,0],
+     [0,1,2,3,3,2,1,0],
+     [0,1,2,3,3,2,1,0],
+     [0,1,2,3,3,2,1,0],
+     [0,0,1,2,2,2,1,0],
+     [0,0,0,1,1,1,0,0]],
+    
+    // Frame 6 - Back to slight tilt
+    [[0,0,1,1,1,1,0,0],
+     [0,1,2,2,2,2,1,0],
+     [0,1,2,3,3,3,2,1],
+     [0,1,2,3,3,3,2,1],
+     [0,1,2,3,3,3,2,1],
+     [0,1,2,3,3,3,2,1],
+     [0,1,2,2,2,2,1,0],
+     [0,0,1,1,1,1,0,0]]
 ];
-// 0 = transparent, 1 = dark orange, 2 = orange, 3 = yellow
+// 0 = transparent, 1 = dark border (#8B4513), 2 = orange (#FFA500), 3 = yellow (#FFD700)
 let coinAnimationFrame = 0;
-const COIN_FRAME_SPEED = 0.2; // Frames per game update
+const COIN_FRAME_SPEED = 0.15; // Frames per game update
 
 // MediaPipe Hands
 let hands;
@@ -115,15 +121,15 @@ const COLORS = {
 // Track touch state
 let fingerTouchedLastFrame = false;
 
-// Draw animated pixelated coin
+// Draw animated pixelated coin (8x8 grid from user's exact PNG)
 function drawPixelCoin(x, y, size, context = null) {
     const targetCtx = context || ctx;
     const frameIndex = Math.floor(coinAnimationFrame) % COIN_FRAMES.length;
     const frame = COIN_FRAMES[frameIndex];
-    const pixelSize = size / 16; // 16x16 grid
+    const pixelSize = size / 8; // 8x8 grid
     
-    for (let row = 0; row < 16; row++) {
-        for (let col = 0; col < 16; col++) {
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
             const pixel = frame[row][col];
             if (pixel === 0) continue; // transparent
             
@@ -131,11 +137,11 @@ function drawPixelCoin(x, y, size, context = null) {
             const py = y - size/2 + row * pixelSize;
             
             if (pixel === 1) {
-                targetCtx.fillStyle = '#8B4513'; // dark orange/brown
+                targetCtx.fillStyle = '#8B4513'; // dark border
             } else if (pixel === 2) {
                 targetCtx.fillStyle = '#FFA500'; // orange
             } else if (pixel === 3) {
-                targetCtx.fillStyle = COLORS.accent; // yellow
+                targetCtx.fillStyle = '#FFD700'; // yellow/gold
             }
             
             targetCtx.fillRect(Math.floor(px), Math.floor(py), Math.ceil(pixelSize), Math.ceil(pixelSize));
