@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>笑容收集之旅 - Hand Tracking Game</title>
+    <title>Coin Collection Journey - Hand Tracking Game</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="game-container">
         <div class="header">
             <div class="title">
-                <h1>😊 笑容收集之旅</h1>
-                <p>Smile Collection Journey - Hand Tracking Edition</p>
+                <h1>🪙 Coin Collection Journey</h1>
+                <p>Hand Tracking Edition</p>
             </div>
         </div>
         
@@ -25,7 +25,7 @@
             <div class="ui-overlay">
                 <div class="score-panel">
                     <div class="score-item">
-                        <span class="emoji">😊</span>
+                        <span class="emoji">🪙</span>
                         <span class="score-value" id="score">0</span>
                     </div>
                     <div class="level-item">
@@ -38,64 +38,66 @@
                     </div>
                     <div class="camera-status" id="cameraStatus">
                         <span class="status-icon">📷</span>
-                        <span class="status-text">启动中...</span>
+                        <span class="status-text">Starting...</span>
                     </div>
                 </div>
                 
                 <div class="instructions">
-                    <p>👆 用食指按顺序触摸圆圈 (1→2→3→...)</p>
-                    <p>📷 允许摄像头权限以开始游戏</p>
-                    <p>⌨️ 按 R 重新开始</p>
+                    <p>👆 Touch targets in order (1→2→3→...)</p>
+                    <p>📷 Allow camera permission to start</p>
+                    <p>⌨️ Press R to restart</p>
                 </div>
             </div>
         </div>
         
         <div class="modal" id="levelCompleteModal">
             <div class="modal-content pixel-box">
-                <h2>🎉 关卡完成！</h2>
-                <p class="next-level">下一关: <span id="nextLevel">2</span></p>
-                <p class="targets-count">目标数: <span id="targetsCount">3</span></p>
-                <button class="pixel-button" id="nextButton">继续</button>
+                <h2>🎉 Level Complete!</h2>
+                <p class="next-level">Next Level: <span id="nextLevel">2</span></p>
+                <p class="targets-count">Targets: <span id="targetsCount">3</span></p>
+                <button class="pixel-button" id="nextButton">Continue</button>
             </div>
         </div>
         
         <div class="modal" id="gameOverModal">
             <div class="modal-content pixel-box">
-                <h2>⏰ 时间到！</h2>
-                <p class="final-score">最终得分: <span id="finalScore">0</span> 😊</p>
-                <p class="final-level">达到关卡: <span id="finalLevel">1</span></p>
-                <button class="pixel-button" id="restartButton">重新开始</button>
+                <h2>⏰ Time's Up!</h2>
+                <p class="final-score">Final Score: <span id="finalScore">0</span> 🪙</p>
+                <p class="final-level">Reached Level: <span id="finalLevel">1</span></p>
+                <button class="pixel-button" id="restartButton">Restart</button>
             </div>
         </div>
         
         <div class="modal" id="wrongModal">
             <div class="modal-content pixel-box wrong">
-                <h2>❌ 顺序错误！</h2>
-                <p>请按照数字顺序触摸</p>
+                <h2>❌ Wrong Order!</h2>
+                <p>Touch targets in numeric order</p>
                 <p class="hint">1 → 2 → 3 → ...</p>
             </div>
         </div>
         
         <div class="modal" id="victoryModal">
             <div class="modal-content pixel-box victory">
-                <h2>🎊 恭喜通关！🎊</h2>
-                <div class="victory-smiley">😊</div>
-                <p class="victory-message">你已完成全部8关挑战！</p>
-                <p class="total-score">总共收集: <span id="totalScore">0</span> 😊</p>
-                <p class="total-levels">完成关卡: <span id="totalLevels">8</span>/8</p>
-                <div class="secret-code-area" id="secretCodeArea">
-                    <p class="secret-hint">👆 用手指触摸这里揭示神秘密码</p>
-                    <div class="secret-code" id="secretCode">****</div>
+                <h2>🎊 Congratulations! 🎊</h2>
+                <div class="victory-key">
+                    <img src="key.gif" alt="Golden Key" class="key-animation">
+                </div>
+                <p class="victory-message">You've completed all 8 levels!</p>
+                <p class="total-score">Total Collected: <span id="totalScore">0</span> 🪙</p>
+                <p class="total-levels">Levels Completed: <span id="totalLevels">8</span>/8</p>
+                <div class="secret-code-display">
+                    <p class="secret-label">Secret Code:</p>
+                    <div class="secret-code revealed" id="secretCode">0218</div>
                 </div>
             </div>
         </div>
         
         <div class="modal" id="cameraModal" style="display: flex;">
             <div class="modal-content pixel-box">
-                <h2>📷 需要摄像头权限</h2>
-                <p>这个游戏使用手部追踪技术</p>
-                <p>请允许访问你的摄像头</p>
-                <button class="pixel-button" id="enableCameraButton">启用摄像头</button>
+                <h2>📷 Camera Permission Required</h2>
+                <p>This game uses hand tracking technology</p>
+                <p>Please allow camera access to continue</p>
+                <button class="pixel-button" id="enableCameraButton">Enable Camera</button>
             </div>
         </div>
     </div>

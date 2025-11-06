@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Key Placeholder</title>
+</head>
+<body>
+    <canvas id="keyCanvas" width="200" height="200"></canvas>
+    <script>
+        // This creates a placeholder - replace key.gif with actual animated GIF
+        const canvas = document.getElementById('keyCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Draw a simple pixelated key
+        ctx.fillStyle = '#FFD700'; // Gold
+        
+        // Key head (octagon)
+        ctx.fillRect(50, 40, 100, 60);
+        ctx.fillRect(40, 50, 10, 40);
+        ctx.fillRect(150, 50, 10, 40);
+        
+        // Key shaft
+        ctx.fillRect(90, 100, 20, 80);
+        
+        // Key teeth
+        ctx.fillRect(90, 170, 8, 10);
+        ctx.fillRect(102, 170, 8, 10);
+        
+        // Add border
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(50, 40, 100, 60);
+        ctx.strokeRect(90, 100, 20, 80);
+        
+        alert('Please replace key.gif in the web_game folder with your actual animated key GIF file');
+    </script>
+</body>
+</html>

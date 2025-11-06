@@ -1,4 +1,4 @@
-// 笑容收集之旅 - Hand Tracking Game with MediaPipe
+// Coin Collection Journey - Hand Tracking Game with MediaPipe
 // Canvas and context
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -10,26 +10,65 @@ ctx.mozImageSmoothingEnabled = false;
 ctx.webkitImageSmoothingEnabled = false;
 ctx.msImageSmoothingEnabled = false;
 
-// 16x16 Smiley face sprite (your exact image)
-const SMILEY_SPRITE = [
-    [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-    [0,0,0,1,1,2,2,2,2,2,2,1,1,0,0,0],
-    [0,0,1,1,2,2,2,2,2,2,2,2,1,1,0,0],
-    [0,1,1,2,2,2,2,2,2,2,2,2,2,1,1,0],
-    [1,1,2,2,1,1,2,2,2,2,1,1,2,2,1,1],
-    [1,2,2,2,1,1,2,2,2,2,1,1,2,2,2,1],
-    [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
-    [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
-    [1,2,2,1,1,2,2,2,2,2,2,1,1,2,2,1],
-    [1,2,2,1,1,2,2,2,2,2,2,1,1,2,2,1],
-    [1,2,2,2,1,1,1,1,1,1,1,1,2,2,2,1],
-    [1,1,2,2,2,2,2,2,2,2,2,2,2,2,1,1],
-    [0,1,1,2,2,2,2,2,2,2,2,2,2,1,1,0],
-    [0,0,1,1,2,2,2,2,2,2,2,2,1,1,0,0],
-    [0,0,0,1,1,2,2,2,2,2,2,1,1,0,0,0],
-    [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0]
+// Animated coin sprite frames (16x16 spinning coin animation)
+const COIN_FRAMES = [
+    // Frame 1 - Full circle
+    [[0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+     [0,0,1,1,2,2,2,2,2,2,2,2,1,1,0,0],
+     [0,1,2,2,2,3,3,3,3,3,3,2,2,2,1,0],
+     [0,1,2,3,3,3,1,1,1,1,3,3,3,2,1,0],
+     [1,2,2,3,1,1,1,1,1,1,1,1,3,2,2,1],
+     [1,2,3,3,1,1,1,1,1,1,1,1,3,3,2,1],
+     [1,2,3,1,1,1,1,1,1,1,1,1,1,3,2,1],
+     [1,2,3,1,1,1,1,1,1,1,1,1,1,3,2,1],
+     [1,2,3,1,1,1,1,1,1,1,1,1,1,3,2,1],
+     [1,2,3,3,1,1,1,1,1,1,1,1,3,3,2,1],
+     [1,2,2,3,1,1,1,1,1,1,1,1,3,2,2,1],
+     [0,1,2,3,3,3,1,1,1,1,3,3,3,2,1,0],
+     [0,1,2,2,2,3,3,3,3,3,3,2,2,2,1,0],
+     [0,0,1,1,2,2,2,2,2,2,2,2,1,1,0,0],
+     [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],
+    
+    // Frame 2 - Tilted
+    [[0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+     [0,0,1,1,2,2,2,2,2,2,2,2,1,1,0,0],
+     [0,1,2,2,2,3,3,3,3,3,3,2,2,2,1,0],
+     [0,1,2,3,3,1,1,1,1,1,1,3,3,2,1,0],
+     [1,2,2,3,1,1,1,1,1,1,1,1,3,2,2,1],
+     [1,2,3,1,1,1,1,1,1,1,1,1,1,3,2,1],
+     [1,2,3,1,1,1,1,1,1,1,1,1,1,3,2,1],
+     [1,2,3,1,1,1,1,1,1,1,1,1,1,3,2,1],
+     [1,2,3,1,1,1,1,1,1,1,1,1,1,3,2,1],
+     [1,2,3,1,1,1,1,1,1,1,1,1,1,3,2,1],
+     [1,2,2,3,1,1,1,1,1,1,1,1,3,2,2,1],
+     [0,1,2,3,3,1,1,1,1,1,1,3,3,2,1,0],
+     [0,1,2,2,2,3,3,3,3,3,3,2,2,2,1,0],
+     [0,0,1,1,2,2,2,2,2,2,2,2,1,1,0,0],
+     [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],
+    
+    // Frame 3 - Thin vertical
+    [[0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
+     [0,0,0,0,0,1,2,2,2,2,1,0,0,0,0,0],
+     [0,0,0,0,1,2,2,3,3,2,2,1,0,0,0,0],
+     [0,0,0,0,1,2,3,1,1,3,2,1,0,0,0,0],
+     [0,0,0,0,1,2,3,1,1,3,2,1,0,0,0,0],
+     [0,0,0,0,1,2,3,1,1,3,2,1,0,0,0,0],
+     [0,0,0,0,1,2,3,1,1,3,2,1,0,0,0,0],
+     [0,0,0,0,1,2,3,1,1,3,2,1,0,0,0,0],
+     [0,0,0,0,1,2,3,1,1,3,2,1,0,0,0,0],
+     [0,0,0,0,1,2,3,1,1,3,2,1,0,0,0,0],
+     [0,0,0,0,1,2,3,1,1,3,2,1,0,0,0,0],
+     [0,0,0,0,1,2,3,1,1,3,2,1,0,0,0,0],
+     [0,0,0,0,1,2,2,3,3,2,2,1,0,0,0,0],
+     [0,0,0,0,0,1,2,2,2,2,1,0,0,0,0,0],
+     [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
+     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
 ];
-// 0 = transparent, 1 = black, 2 = yellow
+// 0 = transparent, 1 = dark orange, 2 = orange, 3 = yellow
+let coinAnimationFrame = 0;
+const COIN_FRAME_SPEED = 0.2; // Frames per game update
 
 // MediaPipe Hands
 let hands;
@@ -76,21 +115,25 @@ const COLORS = {
 // Track touch state
 let fingerTouchedLastFrame = false;
 
-// Draw pixelated smiley face
-function drawPixelSmiley(x, y, size) {
+// Draw animated pixelated coin
+function drawPixelCoin(x, y, size) {
+    const frameIndex = Math.floor(coinAnimationFrame) % COIN_FRAMES.length;
+    const frame = COIN_FRAMES[frameIndex];
     const pixelSize = size / 16; // 16x16 grid
     
     for (let row = 0; row < 16; row++) {
         for (let col = 0; col < 16; col++) {
-            const pixel = SMILEY_SPRITE[row][col];
+            const pixel = frame[row][col];
             if (pixel === 0) continue; // transparent
             
             const px = x - size/2 + col * pixelSize;
             const py = y - size/2 + row * pixelSize;
             
             if (pixel === 1) {
-                ctx.fillStyle = COLORS.black;
+                ctx.fillStyle = '#8B4513'; // dark orange/brown
             } else if (pixel === 2) {
+                ctx.fillStyle = '#FFA500'; // orange
+            } else if (pixel === 3) {
                 ctx.fillStyle = COLORS.accent; // yellow
             }
             
@@ -190,7 +233,7 @@ async function initializeCamera() {
         
         // Update status
         document.getElementById('cameraStatus').innerHTML = 
-            '<span class="status-icon">✅</span><span class="status-text">摄像头已就绪</span>';
+            '<span class="status-icon">✅</span><span class="status-text">Camera Ready</span>';
         
         // Hide camera modal and start game
         document.getElementById('cameraModal').style.display = 'none';
@@ -201,8 +244,8 @@ async function initializeCamera() {
     } catch (error) {
         console.error('Camera error:', error);
         document.getElementById('cameraStatus').innerHTML = 
-            '<span class="status-icon">❌</span><span class="status-text">摄像头错误</span>';
-        alert('无法访问摄像头。请确保已授予权限。');
+            '<span class="status-icon">❌</span><span class="status-text">Camera Error</span>';
+        alert('Cannot access camera. Please grant permission.');
         return false;
     }
 }
@@ -362,7 +405,7 @@ function drawTargets() {
     }
 }
 
-// Particle system (pixelated smiley)
+// Particle system (pixelated spinning coin)
 class Particle {
     constructor(x, y, targetX, targetY) {
         this.x = x;
@@ -384,8 +427,8 @@ class Particle {
         const scale = 1.5 - this.progress * 0.5;
         const size = 48 * scale; // Larger for visibility (3x16 pixels)
         
-        // Draw pixelated smiley
-        drawPixelSmiley(currentX, currentY, size);
+        // Draw animated pixelated coin
+        drawPixelCoin(currentX, currentY, size);
     }
 }
 
@@ -443,6 +486,12 @@ function wrongTouch(touchedNumber) {
 
 // Update game state
 function update() {
+    // Update coin animation
+    coinAnimationFrame += COIN_FRAME_SPEED;
+    if (coinAnimationFrame >= COIN_FRAMES.length * 10) {
+        coinAnimationFrame = 0;
+    }
+    
     // Update particles
     particles = particles.filter(p => {
         const done = p.update();
@@ -476,7 +525,7 @@ function update() {
                 document.getElementById('victoryModal').style.display = 'flex';
                 document.getElementById('totalScore').textContent = score;
                 document.getElementById('totalLevels').textContent = level;
-                secretCodeRevealed = false;
+                // Secret code already displayed in HTML
             } else {
                 gameState = 'level_complete';
                 document.getElementById('levelCompleteModal').style.display = 'flex';
@@ -510,19 +559,8 @@ function update() {
             fingerTouchedLastFrame = false;
         }
     } else if (gameState === 'victory') {
-        // Check for finger touch to reveal secret code
-        if (fingerTipPosition) {
-            checkSecretCodeTouch(); // Update touch state for visual feedback
-            if (buttonTouchState.secretCode && !fingerTouchedLastFrame && !secretCodeRevealed) {
-                secretCodeRevealed = true;
-                document.getElementById('secretCode').textContent = '0218';
-                document.getElementById('secretCode').classList.add('revealed');
-                fingerTouchedLastFrame = true;
-            }
-        } else {
-            buttonTouchState.secretCode = false;
-            fingerTouchedLastFrame = false;
-        }
+        // Victory screen - no interaction needed, code already shown
+        fingerTouchedLastFrame = false;
     } else if (gameState === 'wrong') {
         if (Date.now() - wrongModalStartTime > WRONG_MODAL_DURATION) {
             gameState = 'playing';
