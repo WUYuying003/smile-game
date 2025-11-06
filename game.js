@@ -11,12 +11,14 @@ let handDetected = false;
 let fingerTipPosition = null;
 
 // Game settings
-let gameState = 'waiting_camera'; // waiting_camera, playing, level_complete, game_over, wrong
+let gameState = 'waiting_camera'; // waiting_camera, playing, level_complete, game_over, wrong, victory
 let score = 0;
 let level = 1;
 let currentTarget = 1;
 let targets = [];
 let particles = [];
+const VICTORY_SCORE = 20; // 收集20个笑脸通关
+let secretCodeRevealed = false;
 
 // Timing
 let targetTimer = 10.0;
@@ -417,13 +419,44 @@ function update() {
         } else {
             fingerTouchedLastFrame = false;
         }
+    } else if (gameState === 'level_complete') {
+        // Check for finger touch on next level button
+        if (fingerTipPosition && !fingerTouchedLastFrame) {
+            if (checkNextLevelTouch()) {
+                nextLevel();
+                fingerTouchedLastFrame = true;
+            }
+        } else if (!fingerTipPosition) {
+            fingerTouchedLastFrame = false;
+        }
+    } else if (gameState === 'victory') {
+        // Check for finger touch to reveal secret code
+        if (fingerTipPosition && !fingerTouchedLastFrame) {
+            if (checkSecretCodeTouch()) {
+                secretCodeRevealed = true;
+                document.getElementById('secretCode').textContent = '0218';
+                document.getElementById('secretCode').classList.add('revealed');
+                fingerTouchedLastFrame = true;
+            }
+        } else if (!fingerTipPosition) {
+            fingerTouchedLastFrame = false;
+        }
         
         // Check if level complete
         if (currentTarget > targetsPerLevel && particles.length === 0) {
-            gameState = 'level_complete';
-            document.getElementById('levelCompleteModal').style.display = 'flex';
-            document.getElementById('nextLevel').textContent = level + 1;
-            document.getElementById('targetsCount').textContent = Math.min(2 + level, 8);
+            // Check for victory (20 smileys collected)
+            if (score >= VICTORY_SCORE) {
+                gameState = 'victory';
+                document.getElementById('victoryModal').style.display = 'flex';
+                document.getElementById('totalScore').textContent = score;
+                document.getElementById('totalLevels').textContent = level;
+                secretCodeRevealed = false;
+            } else {
+                gameState = 'level_complete';
+                document.getElementById('levelCompleteModal').style.display = 'flex';
+                document.getElementById('nextLevel').textContent = level + 1;
+                document.getElementById('targetsCount').textContent = Math.min(2 + level, 8);
+            }
         }
         
         // Check timer
@@ -465,7 +498,9 @@ function draw() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     // Draw game elements on top of video
-    drawTargets();
+    if (gameState !== 'victory') {
+        drawTargets();
+    }
     
     for (let particle of particles) {
         particle.draw();
@@ -497,6 +532,40 @@ function nextLevel() {
     document.getElementById('levelCompleteModal').style.display = 'none';
 }
 
+// Check if finger touches next level button area
+function checkNextLevelTouch() {
+    if (!fingerTipPosition || gameState !== 'level_complete') return false;
+    
+    const buttonArea = {
+        x: canvas.width / 2,
+        y: canvas.height / 2 + 80,
+        width: 200,
+        height: 60
+    };
+    
+    return fingerTipPosition.x > buttonArea.x - buttonArea.width / 2 &&
+           fingerTipPosition.x < buttonArea.x + buttonArea.width / 2 &&
+           fingerTipPosition.y > buttonArea.y - buttonArea.height / 2 &&
+           fingerTipPosition.y < buttonArea.y + buttonArea.height / 2;
+}
+
+// Check if finger touches secret code area
+function checkSecretCodeTouch() {
+    if (!fingerTipPosition || gameState !== 'victory') return false;
+    
+    const codeArea = {
+        x: canvas.width / 2,
+        y: canvas.height / 2 + 100,
+        width: 300,
+        height: 80
+    };
+    
+    return fingerTipPosition.x > codeArea.x - codeArea.width / 2 &&
+           fingerTipPosition.x < codeArea.x + codeArea.width / 2 &&
+           fingerTipPosition.y > codeArea.y - codeArea.height / 2 &&
+           fingerTipPosition.y < codeArea.y + codeArea.height / 2;
+}
+
 // Event listeners
 function setupEventListeners() {
     // Enable camera button
@@ -511,10 +580,12 @@ function setupEventListeners() {
             document.getElementById('gameOverModal').style.display = 'none';
             document.getElementById('levelCompleteModal').style.display = 'none';
             document.getElementById('wrongModal').style.display = 'none';
+            document.getElementById('victoryModal').style.display = 'none';
+            secretCodeRevealed = false;
         }
     });
     
-    // Button events
+    // Button events - kept for compatibility
     document.getElementById('nextButton').addEventListener('click', () => {
         nextLevel();
     });

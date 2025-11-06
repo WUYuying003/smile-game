@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>部署流程 - 笑容收集之旅</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a0d2e 0%, #2d1b4e 100%);
+            color: white;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        h1 {
+            font-size: 3em;
+            color: #ffd60a;
+            text-shadow: 3px 3px 0 #9d4edd;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            color: #c77dff;
+        }
+        
+        .flow-section {
+            margin: 40px 0;
+        }
+        
+        .flow-title {
+            font-size: 2em;
+            color: #ffd60a;
+            margin-bottom: 30px;
+            text-align: center;
+            padding: 15px;
+            background: rgba(157, 78, 221, 0.3);
+            border-radius: 10px;
+            border: 3px solid #9d4edd;
+        }
+        
+        .flow-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .step {
+            background: rgba(45, 27, 78, 0.8);
+            padding: 30px;
+            border-radius: 10px;
+            border-left: 5px solid #9d4edd;
+            position: relative;
+            transition: transform 0.3s;
+        }
+        
+        .step:hover {
+            transform: translateX(10px);
+            border-left-color: #ffd60a;
+        }
+        
+        .step-number {
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: #9d4edd;
+            border: 3px solid #ffd60a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .step-title {
+            font-size: 1.5em;
+            color: #ffd60a;
+            margin-bottom: 10px;
+        }
+        
+        .step-content {
+            color: #fff;
+            margin-bottom: 15px;
+        }
+        
+        .step-code {
+            background: #000;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            color: #06ffa5;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        
+        .step-tip {
+            background: rgba(6, 255, 165, 0.1);
+            border-left: 3px solid #06ffa5;
+            padding: 10px 15px;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+        
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        .method {
+            background: rgba(45, 27, 78, 0.8);
+            padding: 30px;
+            border-radius: 10px;
+            border: 3px solid #9d4edd;
+        }
+        
+        .method-title {
+            font-size: 1.8em;
+            color: #ffd60a;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .pros-cons {
+            margin: 20px 0;
+        }
+        
+        .pros-cons h4 {
+            color: #c77dff;
+            margin-bottom: 10px;
+        }
+        
+        .pros-cons ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .pros-cons li {
+            padding: 5px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .pros-cons li:before {
+            position: absolute;
+            left: 0;
+        }
+        
+        .pros li:before {
+            content: "✅";
+        }
+        
+        .cons li:before {
+            content: "⚠️";
+        }
+        
+        .timeline {
+            margin: 40px 0;
+            position: relative;
+            padding-left: 50px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #9d4edd;
+        }
+        
+        .timeline-item {
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -38px;
+            top: 0;
+            width: 15px;
+            height: 15px;
+            background: #ffd60a;
+            border: 3px solid #9d4edd;
+            border-radius: 50%;
+        }
+        
+        .timeline-title {
+            color: #ffd60a;
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #ffd60a;
+            color: #000;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 10px 10px 10px 0;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #06ffa5;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 214, 10, 0.3);
+        }
+        
+        .actions {
+            text-align: center;
+            margin: 50px 0;
+            padding: 40px;
+            background: rgba(157, 78, 221, 0.2);
+            border-radius: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .step-number {
+                position: static;
+                transform: none;
+                margin-bottom: 10px;
+            }
+            
+            .step {
+                padding-left: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>😊 部署流程图</h1>
+            <p class="subtitle">笑容收集之旅 - GitHub Pages 部署指南</p>
+        </header>
+        
+        <div class="comparison">
+            <div class="method">
+                <div class="method-title">🌐 方法1: 网页界面</div>
+                <div class="pros-cons">
+                    <h4>优点:</h4>
+                    <ul class="pros">
+                        <li>最简单，无需安装任何工具</li>
+                        <li>适合初学者</li>
+                        <li>可视化操作</li>
+                        <li>不需要命令行知识</li>
+                    </ul>
+                </div>
+                <div class="pros-cons">
+                    <h4>适合:</h4>
+                    <ul class="cons">
+                        <li>第一次使用GitHub</li>
+                        <li>不熟悉命令行</li>
+                        <li>快速测试部署</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="method">
+                <div class="method-title">💻 方法2: 命令行</div>
+                <div class="pros-cons">
+                    <h4>优点:</h4>
+                    <ul class="pros">
+                        <li>更专业，更高效</li>
+                        <li>批量操作方便</li>
+                        <li>版本控制完整</li>
+                        <li>可使用自动化脚本</li>
+                    </ul>
+                </div>
+                <div class="pros-cons">
+                    <h4>适合:</h4>
+                    <ul class="cons">
+                        <li>有编程经验</li>
+                        <li>需要频繁更新</li>
+                        <li>多人协作项目</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flow-section">
+            <div class="flow-title">🌐 方法1: 网页界面部署（5分钟）</div>
+            
+            <div class="flow-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-title">创建GitHub仓库</div>
+                    <div class="step-content">
+                        <p>访问 <a href="https://github.com/new" target="_blank" style="color: #ffd60a;">https://github.com/new</a></p>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>Repository name: <code>smile-game</code> （或任何你喜欢的名字）</li>
+                            <li>Description: "笑容收集之旅 - 像素游戏"</li>
+                            <li>选择 <strong>Public</strong> ✅</li>
+                            <li>可选: 勾选 "Add a README file"</li>
+                        </ul>
+                    </div>
+                    <div class="step-tip">
+                        💡 <strong>提示:</strong> 仓库名会成为URL的一部分，建议使用简短易记的名字
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-title">上传游戏文件</div>
+                    <div class="step-content">
+                        <p>在仓库页面，点击 <strong>"Add file"</strong> → <strong>"Upload files"</strong></p>
+                        <p style="margin-top: 10px;">拖拽以下3个文件到上传区域：</p>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>✅ <code>index.html</code></li>
+                            <li>✅ <code>game.js</code></li>
+                            <li>✅ <code>styles.css</code></li>
+                        </ul>
+                        <p style="margin-top: 15px;">在底部输入提交信息：<code>Add game files</code></p>
+                        <p>点击 <strong>"Commit changes"</strong></p>
+                    </div>
+                    <div class="step-tip">
+                        💡 <strong>提示:</strong> 可以一次性拖拽多个文件上传
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-title">启用GitHub Pages</div>
+                    <div class="step-content">
+                        <ol style="margin-left: 20px;">
+                            <li>点击仓库顶部的 <strong>"Settings"</strong> 标签</li>
+                            <li>在左侧菜单找到 <strong>"Pages"</strong></li>
+                            <li>在 "Source" 部分：
+                                <ul style="margin-left: 20px; margin-top: 5px;">
+                                    <li>Branch: 选择 <strong>main</strong></li>
+                                    <li>Folder: 选择 <strong>/ (root)</strong></li>
+                                </ul>
+                            </li>
+                            <li>点击 <strong>"Save"</strong></li>
+                        </ol>
+                    </div>
+                    <div class="step-tip">
+                        ⏱️ <strong>等待:</strong> 部署需要1-2分钟，页面会显示绿色的 "Your site is live" 消息
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-title">访问游戏！🎉</div>
+                    <div class="step-content">
+                        <p>你的游戏地址：</p>
+                        <div class="step-code">
+https://你的用户名.github.io/smile-game/
+                        </div>
+                        <p style="margin-top: 15px;"><strong>例如:</strong></p>
+                        <ul style="margin-left: 20px;">
+                            <li>用户名是 <code>john</code></li>
+                            <li>仓库名是 <code>smile-game</code></li>
+                            <li>URL就是: <code>https://john.github.io/smile-game/</code></li>
+                        </ul>
+                    </div>
+                    <div class="step-tip">
+                        🎮 <strong>完成:</strong> 现在可以把这个链接分享给朋友了！
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flow-section">
+            <div class="flow-title">💻 方法2: 命令行部署（推荐）</div>
+            
+            <div class="flow-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-title">准备工作</div>
+                    <div class="step-content">
+                        <p>确保已安装Git：</p>
+                        <div class="step-code">
+# macOS
+brew install git
+
+# 检查是否安装
+git --version
+                        </div>
+                        <p style="margin-top: 15px;">配置Git（首次使用）：</p>
+                        <div class="step-code">
+git config --global user.name "你的名字"
+git config --global user.email "你的邮箱"
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-title">创建GitHub仓库</div>
+                    <div class="step-content">
+                        <p>在GitHub网页上创建空仓库：</p>
+                        <ul style="margin-left: 20px;">
+                            <li>访问 <a href="https://github.com/new" target="_blank" style="color: #ffd60a;">github.com/new</a></li>
+                            <li>输入仓库名（如 <code>smile-game</code>）</li>
+                            <li>选择 Public</li>
+                            <li><strong>不要</strong> 勾选 "Add a README file"</li>
+                        </ul>
+                    </div>
+                    <div class="step-tip">
+                        💡 <strong>提示:</strong> 记下仓库URL，下一步需要用到
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-title">使用快速初始化脚本</div>
+                    <div class="step-content">
+                        <p>在终端中运行：</p>
+                        <div class="step-code">
+cd web_game
+./init.sh 你的GitHub用户名 仓库名
+
+# 例如:
+./init.sh john smile-game
+                        </div>
+                        <p style="margin-top: 15px;">脚本会自动：</p>
+                        <ul style="margin-left: 20px;">
+                            <li>✅ 初始化Git仓库</li>
+                            <li>✅ 添加所有文件</li>
+                            <li>✅ 创建初始提交</li>
+                            <li>✅ 连接到GitHub远程仓库</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-title">推送到GitHub</div>
+                    <div class="step-content">
+                        <div class="step-code">
+git push -u origin main
+                        </div>
+                        <p style="margin-top: 15px;">如果需要登录，使用：</p>
+                        <ul style="margin-left: 20px;">
+                            <li>用户名: 你的GitHub用户名</li>
+                            <li>密码: Personal Access Token（不是账号密码）</li>
+                        </ul>
+                        <p style="margin-top: 10px;"><a href="https://github.com/settings/tokens" target="_blank" style="color: #ffd60a;">创建Token →</a></p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div class="step-title">启用Pages（同方法1）</div>
+                    <div class="step-content">
+                        <p>在GitHub仓库页面：</p>
+                        <ol style="margin-left: 20px;">
+                            <li>Settings → Pages</li>
+                            <li>Source: main 分支</li>
+                            <li>点击 Save</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flow-section">
+            <div class="flow-title">🔄 更新游戏</div>
+            
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-title">修改文件</div>
+                    <p>在本地编辑 index.html、game.js 或 styles.css</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-title">快速部署</div>
+                    <div class="step-code">
+./deploy.sh
+                    </div>
+                    <p style="margin-top: 10px;">或手动操作：</p>
+                    <div class="step-code">
+git add .
+git commit -m "Update game"
+git push
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-title">等待更新</div>
+                    <p>等待1-2分钟，GitHub Pages会自动重新部署</p>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-title">刷新浏览器</div>
+                    <p>按 Ctrl/Cmd + Shift + R 强制刷新页面</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <h2 style="color: #ffd60a; margin-bottom: 20px;">🚀 准备好了吗？</h2>
+            <p style="margin-bottom: 30px; font-size: 1.2em;">选择你的部署方式开始：</p>
+            <a href="https://github.com/new" target="_blank" class="btn">🌐 方法1: 网页部署</a>
+            <a href="TEST.html" class="btn">🎮 本地测试</a>
+            <a href="QUICK_START.md" class="btn">📖 快速开始指南</a>
+            <a href="DEPLOYMENT_GUIDE.md" class="btn">📚 详细教程</a>
+        </div>
+    </div>
+</body>
+</html>

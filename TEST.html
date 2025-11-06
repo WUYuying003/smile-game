@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>本地测试 - 笑容收集之旅</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a0d2e 0%, #2d1b4e 100%);
+            color: white;
+            padding: 40px;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(45, 27, 78, 0.8);
+            padding: 40px;
+            border-radius: 10px;
+            border: 3px solid #9d4edd;
+        }
+        h1 {
+            color: #ffd60a;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(26, 13, 46, 0.6);
+            border-left: 4px solid #c77dff;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #ffd60a;
+            color: #000;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 10px 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background: #06ffa5;
+        }
+        .code {
+            background: #000;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        ul {
+            line-height: 1.8;
+        }
+        .emoji {
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span class="emoji">😊</span> 笑容收集之旅 - 本地测试</h1>
+        
+        <div class="section">
+            <h2>🎮 启动游戏</h2>
+            <p>点击下面的按钮打开游戏：</p>
+            <a href="index.html" class="btn">开始游戏</a>
+        </div>
+        
+        <div class="section">
+            <h2>📁 项目文件</h2>
+            <ul>
+                <li><strong>index.html</strong> - 游戏主页面</li>
+                <li><strong>game.js</strong> - 游戏逻辑</li>
+                <li><strong>styles.css</strong> - 样式文件</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2>🚀 部署到GitHub Pages</h2>
+            <p>有两种部署方式：</p>
+            
+            <h3>方式1：网页上传（最简单）</h3>
+            <ol>
+                <li>在GitHub创建新仓库</li>
+                <li>上传 index.html, game.js, styles.css</li>
+                <li>Settings → Pages → 启用</li>
+            </ol>
+            
+            <h3>方式2：Git命令（推荐）</h3>
+            <p>在终端运行：</p>
+            <div class="code">
+git init<br>
+git add .<br>
+git commit -m "Initial commit"<br>
+git remote add origin https://github.com/你的用户名/仓库名.git<br>
+git push -u origin main
+            </div>
+            
+            <p>或使用快速部署脚本：</p>
+            <div class="code">
+./deploy.sh
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>📚 详细文档</h2>
+            <ul>
+                <li><strong>README.md</strong> - 项目说明</li>
+                <li><strong>DEPLOYMENT_GUIDE.md</strong> - 完整部署指南</li>
+            </ul>
+            <a href="README.md" class="btn">查看README</a>
+            <a href="DEPLOYMENT_GUIDE.md" class="btn">查看部署指南</a>
+        </div>
+        
+        <div class="section">
+            <h2>🎨 游戏特点</h2>
+            <ul>
+                <li><span class="emoji">🎯</span> 像素艺术风格（16×16像素）</li>
+                <li><span class="emoji">🎨</span> 紫色+黄色配色</li>
+                <li><span class="emoji">🖱️</span> 支持鼠标和触摸屏</li>
+                <li><span class="emoji">📱</span> 响应式设计</li>
+                <li><span class="emoji">😊</span> 笑脸作为主角</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2>⚡ 快速测试</h2>
+            <p>确保所有功能正常：</p>
+            <ol>
+                <li>点击圆圈测试交互</li>
+                <li>完成一个关卡</li>
+                <li>测试错误顺序提示</li>
+                <li>测试计时器</li>
+                <li>测试重新开始</li>
+            </ol>
+        </div>
+        
+        <div class="section" style="text-align: center;">
+            <h2>🎉 准备好了？</h2>
+            <p>开始游戏或部署到GitHub！</p>
+            <a href="index.html" class="btn" style="font-size: 20px; padding: 20px 40px;">🎮 开始游戏</a>
+        </div>
+    </div>
+</body>
+</html>
