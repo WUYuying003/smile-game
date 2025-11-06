@@ -10,71 +10,21 @@ ctx.mozImageSmoothingEnabled = false;
 ctx.webkitImageSmoothingEnabled = false;
 ctx.msImageSmoothingEnabled = false;
 
-// Animated coin sprite frames - 6 frames from user's exact PNG (8x8 pixels each)
-const COIN_FRAMES = [
-    // Frame 1 - Full round coin
-    [[0,0,1,1,1,1,0,0],
-     [0,1,2,2,2,2,1,0],
-     [1,2,3,3,3,3,2,1],
-     [1,2,3,3,3,3,2,1],
-     [1,2,3,3,3,3,2,1],
-     [1,2,3,3,3,3,2,1],
-     [0,1,2,2,2,2,1,0],
-     [0,0,1,1,1,1,0,0]],
-    
-    // Frame 2 - Slightly tilted
-    [[0,0,1,1,1,1,0,0],
-     [0,1,2,2,2,2,1,0],
-     [1,2,3,3,3,2,1,0],
-     [1,2,3,3,3,2,1,0],
-     [1,2,3,3,3,2,1,0],
-     [1,2,3,3,3,2,1,0],
-     [0,1,2,2,2,2,1,0],
-     [0,0,1,1,1,1,0,0]],
-    
-    // Frame 3 - More tilted
-    [[0,0,1,1,1,0,0,0],
-     [0,1,2,2,2,1,0,0],
-     [0,1,2,3,3,2,1,0],
-     [0,1,2,3,3,2,1,0],
-     [0,1,2,3,3,2,1,0],
-     [0,1,2,3,3,2,1,0],
-     [0,1,2,2,2,1,0,0],
-     [0,0,1,1,1,0,0,0]],
-    
-    // Frame 4 - Thin vertical
-    [[0,0,0,1,1,0,0,0],
-     [0,0,1,2,2,1,0,0],
-     [0,0,1,2,2,1,0,0],
-     [0,0,1,3,3,1,0,0],
-     [0,0,1,3,3,1,0,0],
-     [0,0,1,2,2,1,0,0],
-     [0,0,1,2,2,1,0,0],
-     [0,0,0,1,1,0,0,0]],
-    
-    // Frame 5 - Tilted other way
-    [[0,0,0,1,1,1,0,0],
-     [0,0,1,2,2,2,1,0],
-     [0,1,2,3,3,2,1,0],
-     [0,1,2,3,3,2,1,0],
-     [0,1,2,3,3,2,1,0],
-     [0,1,2,3,3,2,1,0],
-     [0,0,1,2,2,2,1,0],
-     [0,0,0,1,1,1,0,0]],
-    
-    // Frame 6 - Back to slight tilt
-    [[0,0,1,1,1,1,0,0],
-     [0,1,2,2,2,2,1,0],
-     [0,1,2,3,3,3,2,1],
-     [0,1,2,3,3,3,2,1],
-     [0,1,2,3,3,3,2,1],
-     [0,1,2,3,3,3,2,1],
-     [0,1,2,2,2,2,1,0],
-     [0,0,1,1,1,1,0,0]]
-];
-// 0 = transparent, 1 = dark border (#8B4513), 2 = orange (#FFA500), 3 = yellow (#FFD700)
+// Load coin sprite sheet
+const coinSpriteSheet = new Image();
+coinSpriteSheet.src = 'Spinning Coin.png';
+let coinSpriteLoaded = false;
+coinSpriteSheet.onload = () => {
+    coinSpriteLoaded = true;
+    console.log('Coin sprite loaded successfully!');
+};
+
+// Coin animation settings - 8 frames, slowed down 2x
+const COIN_FRAME_COUNT = 8;
+const COIN_FRAME_WIDTH = 16; // Width of each frame in the sprite sheet
+const COIN_FRAME_HEIGHT = 16; // Height of each frame in the sprite sheet
 let coinAnimationFrame = 0;
-const COIN_FRAME_SPEED = 0.15; // Frames per game update
+const COIN_FRAME_SPEED = 0.075; // Slowed down from 0.15 to 0.075 (half speed)
 
 // MediaPipe Hands
 let hands;
@@ -121,32 +71,42 @@ const COLORS = {
 // Track touch state
 let fingerTouchedLastFrame = false;
 
-// Draw animated pixelated coin (8x8 grid from user's exact PNG)
+// Draw animated coin from sprite sheet
 function drawPixelCoin(x, y, size, context = null) {
     const targetCtx = context || ctx;
-    const frameIndex = Math.floor(coinAnimationFrame) % COIN_FRAMES.length;
-    const frame = COIN_FRAMES[frameIndex];
-    const pixelSize = size / 8; // 8x8 grid
     
-    for (let row = 0; row < 8; row++) {
-        for (let col = 0; col < 8; col++) {
-            const pixel = frame[row][col];
-            if (pixel === 0) continue; // transparent
-            
-            const px = x - size/2 + col * pixelSize;
-            const py = y - size/2 + row * pixelSize;
-            
-            if (pixel === 1) {
-                targetCtx.fillStyle = '#8B4513'; // dark border
-            } else if (pixel === 2) {
-                targetCtx.fillStyle = '#FFA500'; // orange
-            } else if (pixel === 3) {
-                targetCtx.fillStyle = '#FFD700'; // yellow/gold
-            }
-            
-            targetCtx.fillRect(Math.floor(px), Math.floor(py), Math.ceil(pixelSize), Math.ceil(pixelSize));
-        }
+    // If sprite not loaded yet, draw a placeholder
+    if (!coinSpriteLoaded) {
+        targetCtx.fillStyle = '#FFD700';
+        targetCtx.beginPath();
+        targetCtx.arc(x, y, size/2, 0, Math.PI * 2);
+        targetCtx.fill();
+        return;
     }
+    
+    // Calculate which frame to show
+    const frameIndex = Math.floor(coinAnimationFrame) % COIN_FRAME_COUNT;
+    
+    // Calculate source position in sprite sheet (horizontal layout)
+    const sx = frameIndex * COIN_FRAME_WIDTH;
+    const sy = 0;
+    
+    // Draw the coin frame, centered at (x, y)
+    targetCtx.save();
+    
+    // Disable smoothing for this specific draw to maintain pixel art look
+    targetCtx.imageSmoothingEnabled = false;
+    targetCtx.mozImageSmoothingEnabled = false;
+    targetCtx.webkitImageSmoothingEnabled = false;
+    targetCtx.msImageSmoothingEnabled = false;
+    
+    targetCtx.drawImage(
+        coinSpriteSheet,
+        sx, sy, COIN_FRAME_WIDTH, COIN_FRAME_HEIGHT, // Source rectangle
+        x - size/2, y - size/2, size, size // Destination rectangle (centered)
+    );
+    
+    targetCtx.restore();
 }
 
 // Draw pixelated number in a circle
@@ -212,22 +172,39 @@ function onHandResults(results) {
 // Initialize camera
 async function initializeCamera() {
     try {
+        console.log('Starting camera initialization...');
+        
+        // First, ensure hands is initialized
+        if (!hands) {
+            console.log('Initializing MediaPipe Hands...');
+            await initializeHands();
+        }
+        
+        // Request camera permission
         const stream = await navigator.mediaDevices.getUserMedia({
             video: {
-                width: 1920,
-                height: 1080,
+                width: { ideal: 1920 },
+                height: { ideal: 1080 },
                 facingMode: 'user'
             }
         });
         
+        console.log('Camera stream obtained');
         video.srcObject = stream;
         
+        // Wait for video to be ready
         await new Promise((resolve) => {
             video.onloadedmetadata = () => {
+                console.log('Video metadata loaded');
                 resolve();
             };
         });
         
+        // Play the video
+        await video.play();
+        console.log('Video playing');
+        
+        // Initialize MediaPipe camera
         camera = new Camera(video, {
             onFrame: async () => {
                 await hands.send({image: video});
@@ -237,6 +214,7 @@ async function initializeCamera() {
         });
         
         await camera.start();
+        console.log('MediaPipe camera started');
         
         // Update status
         document.getElementById('cameraStatus').innerHTML = 
@@ -252,7 +230,7 @@ async function initializeCamera() {
         console.error('Camera error:', error);
         document.getElementById('cameraStatus').innerHTML = 
             '<span class="status-icon">❌</span><span class="status-text">Camera Error</span>';
-        alert('Cannot access camera. Please grant permission.');
+        alert('无法访问摄像头，请确保：\n1. 已授予摄像头权限\n2. 没有其他程序占用摄像头\n3. 浏览器支持摄像头访问\n\n错误信息: ' + error.message);
         return false;
     }
 }
@@ -562,7 +540,7 @@ function wrongTouch(touchedNumber) {
 function update() {
     // Update coin animation
     coinAnimationFrame += COIN_FRAME_SPEED;
-    if (coinAnimationFrame >= COIN_FRAMES.length * 10) {
+    if (coinAnimationFrame >= COIN_FRAME_COUNT * 10) {
         coinAnimationFrame = 0;
     }
     
