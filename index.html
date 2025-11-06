@@ -36,6 +36,15 @@
             <canvas id="gameCanvas" width="1920" height="1080"></canvas>
             
             <div class="ui-overlay">
+                <!-- Left side coin score display -->
+                <div class="left-score-panel">
+                    <div class="left-score-title">COINS</div>
+                    <div class="left-score-content">
+                        <canvas id="leftCoin" width="48" height="48"></canvas>
+                        <span class="left-score-value" id="leftScore">0</span>
+                    </div>
+                </div>
+                
                 <div class="score-panel">
                     <div class="score-item">
                         <canvas id="scoreCoin" width="32" height="32"></canvas>
@@ -103,7 +112,7 @@
                 <div class="victory-key">
                     <img src="key.gif" alt="Golden Key" class="key-animation" onerror="this.style.display='none'">
                 </div>
-                <p class="victory-message">You've completed all 8 levels!</p>
+                <p class="victory-message">You've completed all 5 levels!</p>
                 <div class="victory-stats">
                     <div class="stat-item">
                         <canvas id="victoryCoin" width="64" height="64"></canvas>
@@ -111,7 +120,7 @@
                     </div>
                     <div class="stat-item">
                         <span class="stat-label">Levels:</span>
-                        <span class="stat-value"><span id="totalLevels">8</span>/8</span>
+                        <span class="stat-value"><span id="totalLevels">5</span>/5</span>
                     </div>
                 </div>
                 <div class="secret-code-display">

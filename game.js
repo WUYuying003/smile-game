@@ -39,7 +39,7 @@ let level = 1;
 let currentTarget = 1;
 let targets = [];
 let particles = [];
-const VICTORY_LEVEL = 8; // 完成第8关通关
+const VICTORY_LEVEL = 5; // 完成第5关通关
 let secretCodeRevealed = false;
 
 // Timing
@@ -248,6 +248,15 @@ function drawCoinOnCanvas(canvasId, size) {
 
 // Update all coin canvases
 function updateCoinCanvases() {
+    // Left side coin
+    const leftCoinCanvas = document.getElementById('leftCoin');
+    if (leftCoinCanvas) {
+        const coinCtx = leftCoinCanvas.getContext('2d');
+        coinCtx.imageSmoothingEnabled = false;
+        coinCtx.clearRect(0, 0, 48, 48);
+        drawPixelCoin(24, 24, 42, coinCtx);
+    }
+    
     // Score coin
     const scoreCanvas = document.getElementById('scoreCoin');
     if (scoreCanvas) {
@@ -624,6 +633,7 @@ function update() {
     
     // Update UI
     document.getElementById('score').textContent = score;
+    document.getElementById('leftScore').textContent = score; // Update left side score
     document.getElementById('level').textContent = level;
     document.getElementById('timer').textContent = Math.ceil(targetTimer);
     
