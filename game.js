@@ -31,6 +31,7 @@ let hands;
 let camera;
 let handDetected = false;
 let fingerTipPosition = null;
+let cameraInitialized = false; // Flag to prevent multiple camera initializations
 
 // Game settings
 let gameState = 'waiting_camera'; // waiting_camera, playing, level_complete, game_over, wrong, victory
@@ -171,12 +172,16 @@ function onHandResults(results) {
 
 // Initialize camera
 async function initializeCamera() {
+    // Prevent multiple initializations
+    if (cameraInitialized) {
+        console.log('Camera already initialized, skipping...');
+        return true;
+    }
+    
     try {
         console.log('Starting camera initialization...');
         
-        // Hands should already be initialized in init(), no need to check again
-        
-        // Request camera permission
+        // Request camera permission ONLY ONCE
         const stream = await navigator.mediaDevices.getUserMedia({
             video: {
                 width: { ideal: 1920 },
@@ -211,6 +216,9 @@ async function initializeCamera() {
         
         await camera.start();
         console.log('MediaPipe camera started');
+        
+        // Mark as initialized
+        cameraInitialized = true;
         
         // Update status
         document.getElementById('cameraStatus').innerHTML = 
@@ -759,9 +767,25 @@ function setupEventListeners() {
         document.getElementById('cameraModal').style.display = 'flex';
     });
     
-    // Enable camera button
-    document.getElementById('enableCameraButton').addEventListener('click', async () => {
-        await initializeCamera();
+    // Enable camera button - only allow one click
+    const enableCameraButton = document.getElementById('enableCameraButton');
+    enableCameraButton.addEventListener('click', async () => {
+        if (cameraInitialized) {
+            console.log('Camera already initialized');
+            return;
+        }
+        
+        // Disable button to prevent multiple clicks
+        enableCameraButton.disabled = true;
+        enableCameraButton.textContent = 'Initializing...';
+        
+        const success = await initializeCamera();
+        
+        if (!success) {
+            // Re-enable button if initialization failed
+            enableCameraButton.disabled = false;
+            enableCameraButton.textContent = 'Try Again';
+        }
     });
     
     // Keyboard events
