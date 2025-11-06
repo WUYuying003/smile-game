@@ -174,11 +174,7 @@ async function initializeCamera() {
     try {
         console.log('Starting camera initialization...');
         
-        // First, ensure hands is initialized
-        if (!hands) {
-            console.log('Initializing MediaPipe Hands...');
-            await initializeHands();
-        }
+        // Hands should already be initialized in init(), no need to check again
         
         // Request camera permission
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -302,6 +298,8 @@ function updateCoinCanvases() {
 
 // Initialize game
 async function init() {
+    // Only initialize hands once at startup
+    console.log('Initializing game...');
     await initializeHands();
     setupEventListeners();
     // Don't hide start modal - wait for user click
