@@ -454,27 +454,17 @@ function update() {
 
 // Draw everything
 function draw() {
-    // Clear with background
-    ctx.fillStyle = COLORS.bg;
+    // Draw video feed as background (flipped horizontally for mirror effect)
+    ctx.save();
+    ctx.scale(-1, 1); // Flip horizontally
+    ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+    ctx.restore();
+    
+    // Optional: Add slight overlay for better visibility of UI elements
+    ctx.fillStyle = 'rgba(26, 13, 46, 0.2)'; // Subtle purple overlay
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Draw grid pattern
-    ctx.strokeStyle = COLORS.bgLight;
-    ctx.lineWidth = 1;
-    for (let x = 0; x < canvas.width; x += 64) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-        ctx.stroke();
-    }
-    for (let y = 0; y < canvas.height; y += 64) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-        ctx.stroke();
-    }
-    
-    // Draw game elements
+    // Draw game elements on top of video
     drawTargets();
     
     for (let particle of particles) {
