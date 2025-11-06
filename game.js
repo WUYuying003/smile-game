@@ -17,7 +17,7 @@ let level = 1;
 let currentTarget = 1;
 let targets = [];
 let particles = [];
-const VICTORY_SCORE = 20; // 收集20个笑脸通关
+const VICTORY_LEVEL = 8; // 完成第8关通关
 let secretCodeRevealed = false;
 
 // Timing
@@ -432,8 +432,8 @@ function update() {
         
         // Check if level complete
         if (currentTarget > targetsPerLevel && particles.length === 0) {
-            // Check for victory (20 smileys collected)
-            if (score >= VICTORY_SCORE) {
+            // Check for victory (completed level 8)
+            if (level >= VICTORY_LEVEL) {
                 gameState = 'victory';
                 document.getElementById('victoryModal').style.display = 'flex';
                 document.getElementById('totalScore').textContent = score;
