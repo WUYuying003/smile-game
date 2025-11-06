@@ -419,16 +419,6 @@ function update() {
         } else {
             fingerTouchedLastFrame = false;
         }
-    } else if (gameState === 'level_complete') {
-        // Check for finger touch on next level button
-        if (fingerTipPosition && !fingerTouchedLastFrame) {
-            if (checkNextLevelTouch()) {
-                nextLevel();
-                fingerTouchedLastFrame = true;
-            }
-        } else if (!fingerTipPosition) {
-            fingerTouchedLastFrame = false;
-        }
         
         // Check if level complete
         if (currentTarget > targetsPerLevel && particles.length === 0) {
@@ -446,18 +436,6 @@ function update() {
                 document.getElementById('targetsCount').textContent = Math.min(2 + level, 8);
             }
         }
-    } else if (gameState === 'victory') {
-        // Check for finger touch to reveal secret code
-        if (fingerTipPosition && !fingerTouchedLastFrame) {
-            if (checkSecretCodeTouch()) {
-                secretCodeRevealed = true;
-                document.getElementById('secretCode').textContent = '0218';
-                document.getElementById('secretCode').classList.add('revealed');
-                fingerTouchedLastFrame = true;
-            }
-        } else if (!fingerTipPosition) {
-            fingerTouchedLastFrame = false;
-        }
         
         // Check timer
         if (currentTarget <= targetsPerLevel) {
@@ -470,6 +448,28 @@ function update() {
                 document.getElementById('finalScore').textContent = score;
                 document.getElementById('finalLevel').textContent = level;
             }
+        }
+    } else if (gameState === 'level_complete') {
+        // Check for finger touch on next level button
+        if (fingerTipPosition && !fingerTouchedLastFrame) {
+            if (checkNextLevelTouch()) {
+                nextLevel();
+                fingerTouchedLastFrame = true;
+            }
+        } else if (!fingerTipPosition) {
+            fingerTouchedLastFrame = false;
+        }
+    } else if (gameState === 'victory') {
+        // Check for finger touch to reveal secret code
+        if (fingerTipPosition && !fingerTouchedLastFrame) {
+            if (checkSecretCodeTouch()) {
+                secretCodeRevealed = true;
+                document.getElementById('secretCode').textContent = '0218';
+                document.getElementById('secretCode').classList.add('revealed');
+                fingerTouchedLastFrame = true;
+            }
+        } else if (!fingerTipPosition) {
+            fingerTouchedLastFrame = false;
         }
     } else if (gameState === 'wrong') {
         if (Date.now() - wrongModalStartTime > WRONG_MODAL_DURATION) {
