@@ -319,7 +319,11 @@ async function init() {
     console.log('Initializing game...');
     await initializeHands();
     setupEventListeners();
-    // Don't hide start modal - wait for user click
+    
+    // Skip start screen, go directly to camera modal
+    document.getElementById('startModal').style.display = 'none';
+    document.getElementById('cameraModal').style.display = 'flex';
+    
     updateCoinCanvases(); // Draw initial coins
     gameLoop();
 }
@@ -761,12 +765,6 @@ function checkSecretCodeTouch() {
 
 // Event listeners
 function setupEventListeners() {
-    // Start game button
-    document.getElementById('startGameButton').addEventListener('click', () => {
-        document.getElementById('startModal').style.display = 'none';
-        document.getElementById('cameraModal').style.display = 'flex';
-    });
-    
     // Enable camera button - only allow one click
     const enableCameraButton = document.getElementById('enableCameraButton');
     enableCameraButton.addEventListener('click', async () => {
