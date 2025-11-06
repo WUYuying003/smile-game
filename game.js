@@ -116,7 +116,8 @@ const COLORS = {
 let fingerTouchedLastFrame = false;
 
 // Draw animated pixelated coin
-function drawPixelCoin(x, y, size) {
+function drawPixelCoin(x, y, size, context = null) {
+    const targetCtx = context || ctx;
     const frameIndex = Math.floor(coinAnimationFrame) % COIN_FRAMES.length;
     const frame = COIN_FRAMES[frameIndex];
     const pixelSize = size / 16; // 16x16 grid
@@ -130,14 +131,14 @@ function drawPixelCoin(x, y, size) {
             const py = y - size/2 + row * pixelSize;
             
             if (pixel === 1) {
-                ctx.fillStyle = '#8B4513'; // dark orange/brown
+                targetCtx.fillStyle = '#8B4513'; // dark orange/brown
             } else if (pixel === 2) {
-                ctx.fillStyle = '#FFA500'; // orange
+                targetCtx.fillStyle = '#FFA500'; // orange
             } else if (pixel === 3) {
-                ctx.fillStyle = COLORS.accent; // yellow
+                targetCtx.fillStyle = COLORS.accent; // yellow
             }
             
-            ctx.fillRect(Math.floor(px), Math.floor(py), Math.ceil(pixelSize), Math.ceil(pixelSize));
+            targetCtx.fillRect(Math.floor(px), Math.floor(py), Math.ceil(pixelSize), Math.ceil(pixelSize));
         }
     }
 }
@@ -250,10 +251,77 @@ async function initializeCamera() {
     }
 }
 
+// Draw coin on canvas
+function drawCoinOnCanvas(canvasId, size) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    
+    drawPixelCoin(centerX, centerY, size);
+}
+
+// Update all coin canvases
+function updateCoinCanvases() {
+    // Score coin
+    const scoreCanvas = document.getElementById('scoreCoin');
+    if (scoreCanvas) {
+        const coinCtx = scoreCanvas.getContext('2d');
+        coinCtx.imageSmoothingEnabled = false;
+        coinCtx.clearRect(0, 0, 32, 32);
+        drawPixelCoin(16, 16, 28, coinCtx);
+    }
+    
+    // Level complete coins
+    ['levelCoin1', 'levelCoin2', 'levelCoin3'].forEach(id => {
+        const canvas = document.getElementById(id);
+        if (canvas) {
+            const coinCtx = canvas.getContext('2d');
+            coinCtx.imageSmoothingEnabled = false;
+            coinCtx.clearRect(0, 0, 48, 48);
+            drawPixelCoin(24, 24, 40, coinCtx);
+        }
+    });
+    
+    // Game over coin
+    const gameOverCanvas = document.getElementById('gameOverCoin');
+    if (gameOverCanvas) {
+        const coinCtx = gameOverCanvas.getContext('2d');
+        coinCtx.imageSmoothingEnabled = false;
+        coinCtx.clearRect(0, 0, 64, 64);
+        drawPixelCoin(32, 32, 56, coinCtx);
+    }
+    
+    // Victory coin
+    const victoryCanvas = document.getElementById('victoryCoin');
+    if (victoryCanvas) {
+        const coinCtx = victoryCanvas.getContext('2d');
+        coinCtx.imageSmoothingEnabled = false;
+        coinCtx.clearRect(0, 0, 64, 64);
+        drawPixelCoin(32, 32, 56, coinCtx);
+    }
+    
+    // Coin preview on start screen
+    const previewCanvas = document.getElementById('coinPreview');
+    if (previewCanvas) {
+        const coinCtx = previewCanvas.getContext('2d');
+        coinCtx.imageSmoothingEnabled = false;
+        coinCtx.clearRect(0, 0, 128, 128);
+        drawPixelCoin(64, 64, 112, coinCtx);
+    }
+}
+
 // Initialize game
 async function init() {
     await initializeHands();
     setupEventListeners();
+    // Don't hide start modal - wait for user click
+    updateCoinCanvases(); // Draw initial coins
     gameLoop();
 }
 
@@ -492,6 +560,9 @@ function update() {
         coinAnimationFrame = 0;
     }
     
+    // Update all coin canvases with animation
+    updateCoinCanvases();
+    
     // Update particles
     particles = particles.filter(p => {
         const done = p.update();
@@ -690,6 +761,12 @@ function checkSecretCodeTouch() {
 
 // Event listeners
 function setupEventListeners() {
+    // Start game button
+    document.getElementById('startGameButton').addEventListener('click', () => {
+        document.getElementById('startModal').style.display = 'none';
+        document.getElementById('cameraModal').style.display = 'flex';
+    });
+    
     // Enable camera button
     document.getElementById('enableCameraButton').addEventListener('click', async () => {
         await initializeCamera();
@@ -725,5 +802,27 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
+// Scale game to fit screen while maintaining aspect ratio
+function scaleGameToFit() {
+    const container = document.querySelector('.game-container');
+    if (!container) return;
+    
+    const targetWidth = 1920;
+    const targetHeight = 1080;
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    
+    const scaleX = windowWidth / targetWidth;
+    const scaleY = windowHeight / targetHeight;
+    const scale = Math.min(scaleX, scaleY, 1); // Don't scale up beyond 100%
+    
+    container.style.transform = `scale(${scale})`;
+}
+
 // Start game when page loads
-window.addEventListener('load', init);
+window.addEventListener('load', () => {
+    init();
+    scaleGameToFit();
+});
+
+window.addEventListener('resize', scaleGameToFit);

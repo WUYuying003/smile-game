@@ -3,14 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coin Collection Journey - Hand Tracking Game</title>
+    <title>Level 2 - Hand Tracking Game</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="game-container">
+        <!-- Start Screen -->
+        <div class="modal" id="startModal" style="display: flex;">
+            <div class="modal-content pixel-box start-screen">
+                <h1 class="game-title">LEVEL 2</h1>
+                <div class="coin-showcase">
+                    <canvas id="coinPreview" width="128" height="128"></canvas>
+                </div>
+                <p class="start-subtitle">Hand Tracking Collection Game</p>
+                <p class="start-instructions">Collect coins by touching targets in order</p>
+                <button class="pixel-button start-button" id="startGameButton">START GAME</button>
+            </div>
+        </div>
+        
         <div class="header">
             <div class="title">
-                <h1>🪙 Coin Collection Journey</h1>
+                <h1>LEVEL 2</h1>
                 <p>Hand Tracking Edition</p>
             </div>
         </div>
@@ -25,7 +38,7 @@
             <div class="ui-overlay">
                 <div class="score-panel">
                     <div class="score-item">
-                        <span class="emoji">🪙</span>
+                        <canvas id="scoreCoin" width="32" height="32"></canvas>
                         <span class="score-value" id="score">0</span>
                     </div>
                     <div class="level-item">
@@ -52,7 +65,12 @@
         
         <div class="modal" id="levelCompleteModal">
             <div class="modal-content pixel-box">
-                <h2>🎉 Level Complete!</h2>
+                <h2>Level Complete!</h2>
+                <div class="level-complete-coins">
+                    <canvas id="levelCoin1" width="48" height="48"></canvas>
+                    <canvas id="levelCoin2" width="48" height="48"></canvas>
+                    <canvas id="levelCoin3" width="48" height="48"></canvas>
+                </div>
                 <p class="next-level">Next Level: <span id="nextLevel">2</span></p>
                 <p class="targets-count">Targets: <span id="targetsCount">3</span></p>
                 <button class="pixel-button" id="nextButton">Continue</button>
@@ -61,8 +79,11 @@
         
         <div class="modal" id="gameOverModal">
             <div class="modal-content pixel-box">
-                <h2>⏰ Time's Up!</h2>
-                <p class="final-score">Final Score: <span id="finalScore">0</span> 🪙</p>
+                <h2>Time's Up!</h2>
+                <div class="game-over-coin">
+                    <canvas id="gameOverCoin" width="64" height="64"></canvas>
+                </div>
+                <p class="final-score">Final Score: <span id="finalScore">0</span></p>
                 <p class="final-level">Reached Level: <span id="finalLevel">1</span></p>
                 <button class="pixel-button" id="restartButton">Restart</button>
             </div>
@@ -70,23 +91,31 @@
         
         <div class="modal" id="wrongModal">
             <div class="modal-content pixel-box wrong">
-                <h2>❌ Wrong Order!</h2>
+                <h2>Wrong Order!</h2>
                 <p>Touch targets in numeric order</p>
                 <p class="hint">1 → 2 → 3 → ...</p>
             </div>
         </div>
         
-        <div class="modal" id="victoryModal">
-            <div class="modal-content pixel-box victory">
-                <h2>🎊 Congratulations! 🎊</h2>
+        <div class="modal fullscreen-modal" id="victoryModal">
+            <div class="victory-fullscreen">
+                <h1 class="victory-title">CONGRATULATIONS!</h1>
                 <div class="victory-key">
-                    <img src="key.gif" alt="Golden Key" class="key-animation">
+                    <img src="key.gif" alt="Golden Key" class="key-animation" onerror="this.style.display='none'">
                 </div>
                 <p class="victory-message">You've completed all 8 levels!</p>
-                <p class="total-score">Total Collected: <span id="totalScore">0</span> 🪙</p>
-                <p class="total-levels">Levels Completed: <span id="totalLevels">8</span>/8</p>
+                <div class="victory-stats">
+                    <div class="stat-item">
+                        <canvas id="victoryCoin" width="64" height="64"></canvas>
+                        <span class="stat-value" id="totalScore">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Levels:</span>
+                        <span class="stat-value"><span id="totalLevels">8</span>/8</span>
+                    </div>
+                </div>
                 <div class="secret-code-display">
-                    <p class="secret-label">Secret Code:</p>
+                    <p class="secret-label">SECRET CODE:</p>
                     <div class="secret-code revealed" id="secretCode">0218</div>
                 </div>
             </div>

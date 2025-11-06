@@ -34,17 +34,21 @@ body {
     background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-bg-light) 100%);
     color: var(--color-white);
     overflow: hidden;
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
 }
 
 .game-container {
-    width: 100%;
-    max-width: 1920px;
+    width: 1920px;
+    height: 1080px;
     margin: 0 auto;
     position: relative;
+    transform-origin: center center;
 }
 
 .header {
@@ -73,8 +77,8 @@ body {
 
 .game-wrapper {
     position: relative;
-    width: 100%;
-    max-width: 1920px;
+    width: 1920px;
+    height: 1080px;
     margin: 0 auto;
     background: var(--color-black);
     border: 8px solid var(--color-primary);
@@ -552,4 +556,149 @@ body {
         transform: scale(1);
         opacity: 1;
     }
+}
+
+/* Start Screen */
+.start-screen {
+    min-width: 600px;
+    text-align: center;
+}
+
+.game-title {
+    font-size: 4em;
+    color: var(--color-accent);
+    text-shadow: 
+        4px 4px 0 var(--color-primary),
+        8px 8px 0 var(--color-secondary);
+    margin-bottom: 30px;
+    letter-spacing: 8px;
+}
+
+.coin-showcase {
+    margin: 30px 0;
+    display: flex;
+    justify-content: center;
+}
+
+#coinPreview {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.start-subtitle {
+    font-size: 1.2em;
+    color: var(--color-secondary);
+    margin: 20px 0;
+}
+
+.start-instructions {
+    font-size: 0.9em;
+    color: var(--color-white);
+    margin: 20px 0;
+}
+
+.start-button {
+    margin-top: 30px;
+    font-size: 1.2em;
+    padding: 20px 40px;
+}
+
+/* Fullscreen Victory */
+.fullscreen-modal {
+    background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-bg-light) 50%, var(--color-primary) 100%);
+}
+
+.victory-fullscreen {
+    width: 1920px;
+    height: 1080px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 80px;
+    box-sizing: border-box;
+}
+
+.victory-title {
+    font-size: 5em;
+    color: var(--color-accent);
+    text-shadow: 
+        6px 6px 0 var(--color-primary),
+        12px 12px 0 var(--color-secondary);
+    margin-bottom: 50px;
+    animation: victoryPulse 2s ease-in-out infinite;
+}
+
+.victory-key {
+    margin: 40px 0;
+}
+
+.key-animation {
+    width: 300px;
+    height: 300px;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    animation: floatKey 2s ease-in-out infinite;
+}
+
+.victory-message {
+    font-size: 1.8em;
+    margin: 30px 0;
+}
+
+.victory-stats {
+    display: flex;
+    gap: 80px;
+    margin: 40px 0;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.stat-item canvas {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.stat-label {
+    font-size: 1.5em;
+    color: var(--color-white);
+}
+
+.stat-value {
+    font-size: 2.5em;
+    color: var(--color-accent);
+}
+
+.secret-code-display {
+    margin-top: 50px;
+}
+
+.secret-label {
+    font-size: 1.5em;
+}
+
+.secret-code {
+    font-size: 4em;
+}
+
+/* Coin canvas styles */
+.score-item canvas,
+.level-complete-coins canvas,
+.game-over-coin canvas,
+.victory-stats canvas {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.level-complete-coins {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin: 20px 0;
 }
