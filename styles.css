@@ -77,6 +77,10 @@ body {
         0 0 40px rgba(157, 78, 221, 0.5);
 }
 
+#video {
+    display: none;
+}
+
 #gameCanvas {
     display: block;
     width: 100%;
@@ -132,6 +136,19 @@ body {
 .timer-value {
     color: var(--color-success);
     font-weight: bold;
+}
+
+.camera-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9em;
+    color: var(--color-white);
+    text-shadow: 2px 2px 0 var(--color-black);
+}
+
+.status-icon {
+    font-size: 1.2em;
 }
 
 .label {

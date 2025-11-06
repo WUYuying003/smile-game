@@ -1,15 +1,17 @@
-// 笑容收集之旅 - Pixel Game
+// 笑容收集之旅 - Hand Tracking Game with MediaPipe
 // Canvas and context
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+const video = document.getElementById('video');
 
-// Pixel settings - 16x16 grid
-const PIXEL_SIZE = 16;
-const GRID_WIDTH = canvas.width / PIXEL_SIZE;  // 120 tiles
-const GRID_HEIGHT = canvas.height / PIXEL_SIZE; // 67.5 tiles
+// MediaPipe Hands
+let hands;
+let camera;
+let handDetected = false;
+let fingerTipPosition = null;
 
 // Game settings
-let gameState = 'playing'; // playing, level_complete, game_over, wrong
+let gameState = 'waiting_camera'; // waiting_camera, playing, level_complete, game_over, wrong
 let score = 0;
 let level = 1;
 let currentTarget = 1;
@@ -20,58 +22,119 @@ let particles = [];
 let targetTimer = 10.0;
 let targetStartTime = Date.now();
 let wrongModalStartTime = null;
-const WRONG_MODAL_DURATION = 2000; // 2 seconds
+const WRONG_MODAL_DURATION = 2000;
 
 // Target settings
 let targetsPerLevel = 2;
-const TARGET_RADIUS_PIXELS = 3; // 3 tiles (48px at 16px/tile)
-const TOUCH_THRESHOLD_PIXELS = 4; // 4 tiles (64px)
+const TARGET_RADIUS = 50;
+const TOUCH_THRESHOLD = 80; // Larger threshold for hand tracking
 
-// Colors - Purple, Yellow, Black, White, Gray theme
+// Colors - Purple, Yellow theme
 const COLORS = {
-    bg: '#1a0d2e',           // Dark purple background
-    bgLight: '#2d1b4e',      // Lighter purple
-    primary: '#9d4edd',      // Purple
-    secondary: '#c77dff',    // Light purple
-    accent: '#ffd60a',       // Yellow
+    bg: '#1a0d2e',
+    bgLight: '#2d1b4e',
+    primary: '#9d4edd',
+    secondary: '#c77dff',
+    accent: '#ffd60a',
     white: '#ffffff',
     black: '#000000',
     gray: '#4a4a4a',
     grayLight: '#808080',
-    wrong: '#e63946',        // Red for errors
-    success: '#06ffa5',      // Cyan for success
+    wrong: '#e63946',
+    success: '#06ffa5',
 };
 
-// Pixel Smiley Character (16x16) - Based on uploaded image
-const SMILEY_SPRITE = [
-    [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-    [0,0,0,1,2,2,2,2,2,2,2,2,1,0,0,0],
-    [0,0,1,2,2,2,2,2,2,2,2,2,2,1,0,0],
-    [0,1,2,2,2,2,2,2,2,2,2,2,2,2,1,0],
-    [1,2,2,1,1,1,2,2,2,2,1,1,1,2,2,1],
-    [1,2,2,1,1,1,2,2,2,2,1,1,1,2,2,1],
-    [1,2,2,1,1,1,2,2,2,2,1,1,1,2,2,1],
-    [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
-    [1,2,2,1,1,2,2,2,2,2,2,1,1,2,2,1],
-    [1,2,2,1,1,2,2,2,2,2,2,1,1,2,2,1],
-    [1,2,2,2,2,1,1,1,1,1,1,2,2,2,2,1],
-    [0,1,2,2,2,2,2,2,2,2,2,2,2,2,1,0],
-    [0,0,1,2,2,2,2,2,2,2,2,2,2,1,0,0],
-    [0,0,0,1,2,2,2,2,2,2,2,2,1,0,0,0],
-    [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-];
+// Track touch state
+let fingerTouchedLastFrame = false;
 
-// Color mapping for sprite: 0=transparent, 1=black, 2=yellow
-const SPRITE_COLORS = {
-    0: null,
-    1: COLORS.black,
-    2: COLORS.accent
-};
+// Initialize MediaPipe Hands
+async function initializeHands() {
+    hands = new Hands({
+        locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        }
+    });
+
+    hands.setOptions({
+        maxNumHands: 2,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.7,
+        minTrackingConfidence: 0.7
+    });
+
+    hands.onResults(onHandResults);
+}
+
+// Handle hand detection results
+function onHandResults(results) {
+    handDetected = results.multiHandLandmarks && results.multiHandLandmarks.length > 0;
+    
+    if (handDetected) {
+        // Get index finger tip (landmark 8) from first detected hand
+        const landmarks = results.multiHandLandmarks[0];
+        const indexTip = landmarks[8];
+        
+        // Convert to canvas coordinates (flip horizontally for mirror effect)
+        fingerTipPosition = {
+            x: (1 - indexTip.x) * canvas.width,
+            y: indexTip.y * canvas.height
+        };
+    } else {
+        fingerTipPosition = null;
+    }
+}
+
+// Initialize camera
+async function initializeCamera() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                width: 1280,
+                height: 720,
+                facingMode: 'user'
+            }
+        });
+        
+        video.srcObject = stream;
+        
+        await new Promise((resolve) => {
+            video.onloadedmetadata = () => {
+                resolve();
+            };
+        });
+        
+        camera = new Camera(video, {
+            onFrame: async () => {
+                await hands.send({image: video});
+            },
+            width: 1280,
+            height: 720
+        });
+        
+        await camera.start();
+        
+        // Update status
+        document.getElementById('cameraStatus').innerHTML = 
+            '<span class="status-icon">✅</span><span class="status-text">摄像头已就绪</span>';
+        
+        // Hide camera modal and start game
+        document.getElementById('cameraModal').style.display = 'none';
+        gameState = 'playing';
+        generateTargets();
+        
+        return true;
+    } catch (error) {
+        console.error('Camera error:', error);
+        document.getElementById('cameraStatus').innerHTML = 
+            '<span class="status-icon">❌</span><span class="status-text">摄像头错误</span>';
+        alert('无法访问摄像头。请确保已授予权限。');
+        return false;
+    }
+}
 
 // Initialize game
-function init() {
-    generateTargets();
+async function init() {
+    await initializeHands();
     setupEventListeners();
     gameLoop();
 }
@@ -81,27 +144,27 @@ function generateTargets() {
     targets = [];
     targetsPerLevel = Math.min(2 + level - 1, 8);
     
-    const margin = 6; // tiles from edge
+    const margin = 80;
     
     for (let i = 0; i < targetsPerLevel; i++) {
         let x, y, valid;
         let attempts = 0;
         
         do {
-            x = Math.floor(Math.random() * (GRID_WIDTH - margin * 2) + margin);
-            y = Math.floor(Math.random() * (GRID_HEIGHT - margin * 2 - 12) + margin + 6); // Avoid UI areas
+            x = Math.floor(Math.random() * (canvas.width - margin * 2) + margin);
+            y = Math.floor(Math.random() * (canvas.height - margin * 2 - 150) + margin + 100);
             
             valid = true;
             for (let target of targets) {
                 const dist = Math.sqrt((x - target.x) ** 2 + (y - target.y) ** 2);
-                if (dist < TARGET_RADIUS_PIXELS * 3) {
+                if (dist < TARGET_RADIUS * 3) {
                     valid = false;
                     break;
                 }
             }
             
             attempts++;
-            if (attempts > 100) break; // Prevent infinite loop
+            if (attempts > 100) break;
         } while (!valid);
         
         targets.push({
@@ -119,121 +182,112 @@ function generateTargets() {
     targetStartTime = Date.now();
 }
 
-// Draw pixel grid helper
-function drawPixel(x, y, color, size = 1) {
-    if (!color) return;
-    ctx.fillStyle = color;
-    ctx.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, size * PIXEL_SIZE, size * PIXEL_SIZE);
-}
-
-// Draw pixel circle (approximated)
-function drawPixelCircle(cx, cy, radius, color, filled = false) {
-    ctx.fillStyle = color;
-    ctx.strokeStyle = color;
-    
-    // Use traditional circle for smoother look, but align to pixel grid
-    const pixelX = Math.round(cx) * PIXEL_SIZE + PIXEL_SIZE / 2;
-    const pixelY = Math.round(cy) * PIXEL_SIZE + PIXEL_SIZE / 2;
-    const pixelRadius = radius * PIXEL_SIZE;
-    
-    ctx.beginPath();
-    ctx.arc(pixelX, pixelY, pixelRadius, 0, Math.PI * 2);
-    
-    if (filled) {
+// Draw finger tip indicator
+function drawFingerIndicator() {
+    if (fingerTipPosition) {
+        const {x, y} = fingerTipPosition;
+        
+        // Draw outer circle
+        ctx.strokeStyle = COLORS.white;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(x, y, 20, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Draw inner circle
+        ctx.fillStyle = COLORS.accent;
+        ctx.beginPath();
+        ctx.arc(x, y, 15, 0, Math.PI * 2);
         ctx.fill();
-    } else {
-        ctx.lineWidth = PIXEL_SIZE * 0.3;
+        
+        // Draw crosshair
+        ctx.strokeStyle = COLORS.white;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x - 10, y);
+        ctx.lineTo(x + 10, y);
+        ctx.moveTo(x, y - 10);
+        ctx.lineTo(x, y + 10);
         ctx.stroke();
     }
-}
-
-// Draw smiley sprite
-function drawSmiley(x, y, scale = 1) {
-    const size = 16 * scale;
-    const offsetX = x - size / 2;
-    const offsetY = y - size / 2;
-    
-    for (let row = 0; row < 16; row++) {
-        for (let col = 0; col < 16; col++) {
-            const colorCode = SMILEY_SPRITE[row][col];
-            const color = SPRITE_COLORS[colorCode];
-            
-            if (color) {
-                const pixelX = offsetX + col * scale;
-                const pixelY = offsetY + row * scale;
-                drawPixel(pixelX, pixelY, color, scale);
-            }
-        }
-    }
-}
-
-// Draw pixel text
-function drawPixelText(text, x, y, size, color) {
-    ctx.fillStyle = color;
-    ctx.font = `${size * PIXEL_SIZE}px "Press Start 2P", monospace`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(text, x * PIXEL_SIZE, y * PIXEL_SIZE);
 }
 
 // Draw targets
 function drawTargets() {
     for (let target of targets) {
-        const { x, y, number, completed, beingTouched, wrong } = target;
+        const {x, y, number, completed, beingTouched, wrong} = target;
         
-        // Draw timer progress for current target
+        // Draw countdown progress for current target
         if (number === currentTarget && !completed && target.startTime) {
             const elapsed = (Date.now() - target.startTime) / 1000;
             const remaining = Math.max(0, 1 - elapsed / 10.0);
             
             if (remaining > 0) {
                 const angle = remaining * Math.PI * 2;
-                const pixelX = x * PIXEL_SIZE + PIXEL_SIZE / 2;
-                const pixelY = y * PIXEL_SIZE + PIXEL_SIZE / 2;
-                const radius = (TARGET_RADIUS_PIXELS + 1) * PIXEL_SIZE;
-                
                 ctx.strokeStyle = remaining > 0.5 ? COLORS.accent : COLORS.wrong;
-                ctx.lineWidth = PIXEL_SIZE * 0.5;
+                ctx.lineWidth = 5;
                 ctx.beginPath();
-                ctx.arc(pixelX, pixelY, radius, -Math.PI / 2, -Math.PI / 2 + angle);
+                ctx.arc(x, y, TARGET_RADIUS + 15, -Math.PI / 2, -Math.PI / 2 + angle);
                 ctx.stroke();
             }
         }
         
-        // Choose color
+        // Choose color and draw
         let color;
         if (wrong) {
             color = COLORS.wrong;
-            drawPixelCircle(x, y, TARGET_RADIUS_PIXELS, color, true);
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, TARGET_RADIUS, 0, Math.PI * 2);
+            ctx.fill();
             
             // Draw X
-            const offset = TARGET_RADIUS_PIXELS * 0.5;
             ctx.strokeStyle = COLORS.white;
-            ctx.lineWidth = PIXEL_SIZE * 0.3;
+            ctx.lineWidth = 4;
             ctx.beginPath();
-            ctx.moveTo((x - offset) * PIXEL_SIZE, (y - offset) * PIXEL_SIZE);
-            ctx.lineTo((x + offset) * PIXEL_SIZE, (y + offset) * PIXEL_SIZE);
-            ctx.moveTo((x - offset) * PIXEL_SIZE, (y + offset) * PIXEL_SIZE);
-            ctx.lineTo((x + offset) * PIXEL_SIZE, (y - offset) * PIXEL_SIZE);
+            ctx.moveTo(x - 20, y - 20);
+            ctx.lineTo(x + 20, y + 20);
+            ctx.moveTo(x - 20, y + 20);
+            ctx.lineTo(x + 20, y - 20);
             ctx.stroke();
         } else if (completed) {
             color = COLORS.primary;
-            drawPixelCircle(x, y, TARGET_RADIUS_PIXELS, color, true);
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, TARGET_RADIUS, 0, Math.PI * 2);
+            ctx.fill();
         } else if (number === currentTarget) {
             color = beingTouched ? COLORS.success : COLORS.white;
-            drawPixelCircle(x, y, TARGET_RADIUS_PIXELS, color, false);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.arc(x, y, TARGET_RADIUS, 0, Math.PI * 2);
+            ctx.stroke();
             
             // Draw number
-            drawPixelText(number.toString(), x, y, 1.5, color);
+            ctx.fillStyle = color;
+            ctx.font = 'bold 48px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(number.toString(), x, y);
         } else {
             color = COLORS.secondary;
-            drawPixelCircle(x, y, TARGET_RADIUS_PIXELS, color, false);
-            drawPixelText(number.toString(), x, y, 1, color);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(x, y, TARGET_RADIUS, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.fillStyle = color;
+            ctx.font = 'bold 36px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(number.toString(), x, y);
         }
     }
 }
 
-// Particle system for effects
+// Particle system
 class Particle {
     constructor(x, y, targetX, targetY) {
         this.x = x;
@@ -253,8 +307,87 @@ class Particle {
         const currentX = this.x + (this.targetX - this.x) * this.progress;
         const currentY = this.y + (this.targetY - this.y) * this.progress;
         const scale = 1.5 - this.progress * 0.5;
+        const size = 25 * scale;
         
-        drawSmiley(currentX, currentY, scale);
+        // Draw smiley
+        ctx.fillStyle = COLORS.accent;
+        ctx.beginPath();
+        ctx.arc(currentX, currentY, size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = COLORS.white;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(currentX, currentY, size, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        if (size > 10) {
+            // Eyes
+            ctx.fillStyle = COLORS.black;
+            ctx.beginPath();
+            ctx.arc(currentX - size * 0.3, currentY - size * 0.2, size * 0.15, 0, Math.PI * 2);
+            ctx.arc(currentX + size * 0.3, currentY - size * 0.2, size * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Smile
+            ctx.strokeStyle = COLORS.black;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(currentX, currentY + size * 0.2, size * 0.4, 0, Math.PI, false);
+            ctx.stroke();
+        }
+    }
+}
+
+// Check if finger touches target
+function checkTouch(fingerX, fingerY) {
+    for (let target of targets) {
+        if (!target.completed) {
+            const dist = Math.sqrt((fingerX - target.x) ** 2 + (fingerY - target.y) ** 2);
+            
+            if (dist < TOUCH_THRESHOLD) {
+                target.beingTouched = true;
+                return target.number;
+            } else {
+                target.beingTouched = false;
+            }
+        }
+    }
+    return null;
+}
+
+// Complete target
+function completeTarget(fingerX, fingerY) {
+    for (let target of targets) {
+        if (target.number === currentTarget) {
+            target.completed = true;
+            target.beingTouched = false;
+            
+            particles.push(new Particle(fingerX, fingerY, 100, 60));
+            
+            score++;
+            currentTarget++;
+            
+            if (currentTarget <= targetsPerLevel) {
+                targetStartTime = Date.now();
+                targets[currentTarget - 1].startTime = targetStartTime;
+            }
+            
+            break;
+        }
+    }
+}
+
+// Wrong touch
+function wrongTouch(touchedNumber) {
+    gameState = 'wrong';
+    wrongModalStartTime = Date.now();
+    document.getElementById('wrongModal').style.display = 'flex';
+    
+    for (let target of targets) {
+        if (target.number === touchedNumber) {
+            target.wrong = true;
+        }
     }
 }
 
@@ -267,6 +400,24 @@ function update() {
     });
     
     if (gameState === 'playing') {
+        // Check for hand interaction
+        if (fingerTipPosition) {
+            const touchedTarget = checkTouch(fingerTipPosition.x, fingerTipPosition.y);
+            
+            if (touchedTarget !== null && !fingerTouchedLastFrame) {
+                if (touchedTarget === currentTarget) {
+                    completeTarget(fingerTipPosition.x, fingerTipPosition.y);
+                } else {
+                    wrongTouch(touchedTarget);
+                }
+                fingerTouchedLastFrame = true;
+            } else if (touchedTarget === null) {
+                fingerTouchedLastFrame = false;
+            }
+        } else {
+            fingerTouchedLastFrame = false;
+        }
+        
         // Check if level complete
         if (currentTarget > targetsPerLevel && particles.length === 0) {
             gameState = 'level_complete';
@@ -288,7 +439,6 @@ function update() {
             }
         }
     } else if (gameState === 'wrong') {
-        // Check if wrong modal should close
         if (Date.now() - wrongModalStartTime > WRONG_MODAL_DURATION) {
             gameState = 'playing';
             document.getElementById('wrongModal').style.display = 'none';
@@ -308,117 +458,31 @@ function draw() {
     ctx.fillStyle = COLORS.bg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Draw grid pattern (subtle)
+    // Draw grid pattern
     ctx.strokeStyle = COLORS.bgLight;
     ctx.lineWidth = 1;
-    for (let x = 0; x < GRID_WIDTH; x += 4) {
+    for (let x = 0; x < canvas.width; x += 64) {
         ctx.beginPath();
-        ctx.moveTo(x * PIXEL_SIZE, 0);
-        ctx.lineTo(x * PIXEL_SIZE, canvas.height);
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
         ctx.stroke();
     }
-    for (let y = 0; y < GRID_HEIGHT; y += 4) {
+    for (let y = 0; y < canvas.height; y += 64) {
         ctx.beginPath();
-        ctx.moveTo(0, y * PIXEL_SIZE);
-        ctx.lineTo(canvas.width, y * PIXEL_SIZE);
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
         ctx.stroke();
     }
     
-    // Draw targets
+    // Draw game elements
     drawTargets();
     
-    // Draw particles
     for (let particle of particles) {
         particle.draw();
     }
     
-    // Draw overlays based on state
-    if (gameState === 'wrong') {
-        ctx.fillStyle = 'rgba(26, 13, 46, 0.7)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-}
-
-// Check if point touches target
-function checkTouch(pixelX, pixelY) {
-    for (let target of targets) {
-        if (!target.completed) {
-            const dist = Math.sqrt((pixelX - target.x) ** 2 + (pixelY - target.y) ** 2);
-            
-            if (dist < TOUCH_THRESHOLD_PIXELS) {
-                target.beingTouched = true;
-                return target.number;
-            } else {
-                target.beingTouched = false;
-            }
-        }
-    }
-    return null;
-}
-
-// Handle touch/click
-function handleTouch(clientX, clientY) {
-    if (gameState !== 'playing') return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    
-    const canvasX = (clientX - rect.left) * scaleX;
-    const canvasY = (clientY - rect.top) * scaleY;
-    
-    const pixelX = Math.floor(canvasX / PIXEL_SIZE);
-    const pixelY = Math.floor(canvasY / PIXEL_SIZE);
-    
-    const touchedTarget = checkTouch(pixelX, pixelY);
-    
-    if (touchedTarget !== null) {
-        if (touchedTarget === currentTarget) {
-            // Correct target
-            completeTarget(pixelX, pixelY);
-        } else {
-            // Wrong target
-            wrongTouch(touchedTarget);
-        }
-    }
-}
-
-// Complete target
-function completeTarget(pixelX, pixelY) {
-    for (let target of targets) {
-        if (target.number === currentTarget) {
-            target.completed = true;
-            target.beingTouched = false;
-            
-            // Create particle
-            particles.push(new Particle(pixelX, pixelY, 6, 3));
-            
-            score++;
-            currentTarget++;
-            
-            // Start timer for next target
-            if (currentTarget <= targetsPerLevel) {
-                targetStartTime = Date.now();
-                targets[currentTarget - 1].startTime = targetStartTime;
-            }
-            
-            break;
-        }
-    }
-}
-
-// Wrong touch
-function wrongTouch(touchedNumber) {
-    gameState = 'wrong';
-    wrongModalStartTime = Date.now();
-    
-    document.getElementById('wrongModal').style.display = 'flex';
-    
-    for (let target of targets) {
-        if (target.number === touchedNumber) {
-            target.wrong = true;
-        }
-    }
+    // Draw finger indicator on top
+    drawFingerIndicator();
 }
 
 // Reset game
@@ -445,17 +509,9 @@ function nextLevel() {
 
 // Event listeners
 function setupEventListeners() {
-    // Mouse events
-    canvas.addEventListener('click', (e) => {
-        handleTouch(e.clientX, e.clientY);
-    });
-    
-    // Touch events
-    canvas.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        if (e.touches.length > 0) {
-            handleTouch(e.touches[0].clientX, e.touches[0].clientY);
-        }
+    // Enable camera button
+    document.getElementById('enableCameraButton').addEventListener('click', async () => {
+        await initializeCamera();
     });
     
     // Keyboard events
@@ -465,8 +521,6 @@ function setupEventListeners() {
             document.getElementById('gameOverModal').style.display = 'none';
             document.getElementById('levelCompleteModal').style.display = 'none';
             document.getElementById('wrongModal').style.display = 'none';
-        } else if (e.key === 'Escape') {
-            // Pause (can be extended)
         }
     });
     

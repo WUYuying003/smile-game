@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>笑容收集之旅 - Pixel Adventure</title>
+    <title>笑容收集之旅 - Hand Tracking Game</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -11,12 +11,16 @@
         <div class="header">
             <div class="title">
                 <h1>😊 笑容收集之旅</h1>
-                <p>Smile Collection Journey - Pixel Edition</p>
+                <p>Smile Collection Journey - Hand Tracking Edition</p>
             </div>
         </div>
         
         <div class="game-wrapper">
-            <canvas id="gameCanvas" width="1920" height="1080"></canvas>
+            <!-- Video for camera feed (hidden behind canvas) -->
+            <video id="video" autoplay playsinline></video>
+            
+            <!-- Canvas for drawing game and hand tracking -->
+            <canvas id="gameCanvas" width="1280" height="720"></canvas>
             
             <div class="ui-overlay">
                 <div class="score-panel">
@@ -32,11 +36,16 @@
                         <span class="label">Time:</span>
                         <span class="timer-value" id="timer">10</span>s
                     </div>
+                    <div class="camera-status" id="cameraStatus">
+                        <span class="status-icon">📷</span>
+                        <span class="status-text">启动中...</span>
+                    </div>
                 </div>
                 
                 <div class="instructions">
-                    <p>👆 点击或触摸按顺序标记的圆圈</p>
-                    <p>⌨️ 按 R 重新开始 | ESC 暂停</p>
+                    <p>👆 用食指按顺序触摸圆圈 (1→2→3→...)</p>
+                    <p>📷 允许摄像头权限以开始游戏</p>
+                    <p>⌨️ 按 R 重新开始</p>
                 </div>
             </div>
         </div>
@@ -62,12 +71,27 @@
         <div class="modal" id="wrongModal">
             <div class="modal-content pixel-box wrong">
                 <h2>❌ 顺序错误！</h2>
-                <p>请按照数字顺序点击</p>
+                <p>请按照数字顺序触摸</p>
                 <p class="hint">1 → 2 → 3 → ...</p>
+            </div>
+        </div>
+        
+        <div class="modal" id="cameraModal" style="display: flex;">
+            <div class="modal-content pixel-box">
+                <h2>📷 需要摄像头权限</h2>
+                <p>这个游戏使用手部追踪技术</p>
+                <p>请允许访问你的摄像头</p>
+                <button class="pixel-button" id="enableCameraButton">启用摄像头</button>
             </div>
         </div>
     </div>
     
+    <!-- MediaPipe Hands -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    
+    <!-- Game Script -->
     <script src="game.js"></script>
 </body>
 </html>
